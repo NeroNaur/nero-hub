@@ -18,6 +18,7 @@ const routes = [
       { path: 'focus', name: 'focus', component: sub('FocusTab') },
     ],
   },
+  { path: '/admin', name: 'admin', component: () => import('@/views/AdminView.vue') },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFoundView.vue') },
 ]
 

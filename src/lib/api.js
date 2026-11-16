@@ -56,3 +56,63 @@ export async function getSubjectFull(slug, { fresh = false } = {}) {
   cache.set(slug, subject)
   return subject
 }
+
+export function clearCache(slug) {
+  slug ? cache.delete(slug) : cache.clear()
+}
+
+// ---------- Admin writes (RLS: only the owner account can do these) ----------
+function check(res, what) {
+  if (res.error) {
+    const msg = res.error.message || String(res.error)
+    if (/flashcards/.test(msg) && /(does not exist|schema cache)/.test(msg))
+      throw new Error('Flashcards table missing — run supabase/002_flashcards.sql first.')
+    if (/row-level security|permission denied/i.test(msg))
+      throw new Error(`Not allowed to write ${what}. Is your account in app_owner?`)
+    throw new Error(`${what}: ${msg}`)
+  }
+  return res.data
+}
+
+export async function listSubjectsWithModules() {
+  return check(
+    await supabase
+      .from('subjects')
+      .select('id, slug, name, modules(id, slug, title, sort_order)')
+      .order('sort_order')
+      .order('sort_order', { referencedTable: 'modules' }),
+    'subjects',
+  )
+}
+
+export async function importModule(subjectId, mod, { replace = true } = {}) {
+  const [row] = check(
+    await supabase
+      .from('modules')
+      .upsert(
+        { subject_id: subjectId, slug: mod.slug, title: mod.title, summary: mod.summary ?? null, sort_order: mod.order ?? 0 },
+        { onConflict: 'subject_id,slug' },
+      )
+      .select('id'),
+    'module',
+  )
+  const id = row.id
+  // Replace only the parts this import provides (a notes-only import keeps existing questions).
+  if (replace) {
+    const parts = { reviews: mod.notes, questions: mod.questions, flashcards: mod.flashcards }
+    for (const [t, arr] of Object.entries(parts)) {
+      if (arr.length) check(await supabase.from(t).delete().eq('module_id', id), t)
+    }
+  }
+  const withId = (arr, extra = () => ({})) => arr.map((x, i) => ({ ...x, ...extra(x, i), module_id: id }))
+  if (mod.notes.length)
+    check(await supabase.from('reviews').insert(withId(mod.notes, (_, i) => ({ sort_order: i + 1 }))), 'notes')
+  if (mod.questions.length) check(await supabase.from('questions').insert(withId(mod.questions)), 'questions')
+  if (mod.flashcards.length)
+    check(await supabase.from('flashcards').insert(withId(mod.flashcards, (_, i) => ({ sort_order: i + 1 }))), 'flashcards')
+  return id
+}
+
+export async function deleteModule(moduleId) {
+  check(await supabase.from('modules').delete().eq('id', moduleId), 'module')
+}

@@ -1,0 +1,212 @@
+{
+  "subject": "art-appreciation",
+  "modules": [
+    {
+      "slug": "lesson-1-defining-art",
+      "title": "Lesson 1: Defining Art",
+      "summary": "What art is, why it matters, what it is for, and how it is classified.",
+      "order": 1,
+      "notes": [
+        {
+          "title": "Introduction",
+          "content": "This lesson tackles **how art is defined**, **why it matters**, **what it is for**, and some **preliminary assumptions** people normally hold about art.\n\nGuiding questions:\n- How can we read and understand a work of art?\n- What can we learn from studying art?\n\nThe goal is to recognize your own understanding of art and build a wider, more comprehensive view of the nature and definition of art through **visual analysis**: identifying, discussing, and clarifying views and perceptions about art."
+        },
+        {
+          "title": "Defining Art",
+          "content": "Art is all around us. It is **universal**: it can be found in **all cultures**.\n\n> **Basic assumption #1:** Art is universal.\n\n- Art has been around for **thousands of years** and has evolved in many different ways.\n- The reasons for creating it vary from **person to person**, **culture to culture**, and **time period to time period**.\n\nImagine a world without art: how would things around us look? Would beauty or anything visually appealing exist at all? This provocative question is why we need to define what art **is** and **is not**."
+        },
+        {
+          "title": "Why Art Matters",
+          "content": "Art is so diverse that there are as many ways to understand it as there are people. Scholars from different fields give their own definitions, but the point is that **people look at art based on how they experience it**.\n\n> **Basic assumption #2:** Art involves experience.\n\nArt has both **purpose** and **expression**. It has a unique role in **moving people**:\n- a source of **inspiration**\n- inciting new questions and provoking **curiosity**\n- revolutionary ideas, and **socio-cultural and political advocacies**\n- an essential ingredient to **empowering people**, especially the younger generation\n\n**Example:** When activists show images of **extrajudicial killings (EJK)** in their campaigns, art is pulling at the heartstrings of society, its government and its forces to push for radical change.\n\nSo art can influence **culture, politics, and even the economy**.\n\nArt also develops **critical thinking** and the ability to **interpret the world** around us. Art requires thought, a kind of **creative impulse**: it is not limited to absorbing information; it makes you think about current ideas and inspires you to make your own. For students, art encourages **self-expression and creativity** and unlocks the potential of the human mind.\n\n> **Basic assumption #3:** Art is a human creation, using our thoughtful skill and artistry."
+        },
+        {
+          "title": "What Is Art Made For? (Functions of Art)",
+          "content": "An inquiry on **what art is for** is an inquiry on the **function of art**.\n\n- Every piece of art is functional in some way: **all art exists for a reason**, and these reasons make up the functions of art.\n- No art can be \"assigned\" a function **outside of its proper context**. Art forms exist within very specific contexts that must be considered when classifying them.\n- Different art forms come with distinctive functions.\n\nThe functions of art normally fall into **three categories**:\n\n### 1. Personal function\n- Highly varied and **subjective**; depends on the **artist** who creates it.\n- Art made for **self-expression, enjoyment, provoking thought, or therapeutic purposes**.\n\n### 2. Social function\n- Art used for **public display and celebration**.\n- Used to affect **collective behavior**: addresses a **collective interest** rather than one's personal point of view or experience.\n\n### 3. Physical function\n- Realized through the **objects and environments** we create that fill a **utilitarian need**."
+        },
+        {
+          "title": "How Is Art Classified?",
+          "content": "Traditional and contemporary art include activities as diverse as architecture, sculpture, painting, music, theater, dance, printmaking, opera, photography, literature, filmmaking, furniture, and ceramics.\n\nThey are commonly classified into **four categories**:\n\n| Category | What it is | Examples |\n|---|---|---|\n| **1. Visual Arts** | Works that are **primarily visual** in nature | drawing, painting, sculpture, photography, printmaking, **architecture** |\n| **2. Performing / Combined Arts** | Combine a variety of media that can be **both seen and heard**, existing in **both space and time** | music, dance, film, theater, literature |\n| **3. Digital Arts** | Work **made with** or **presented on** digital technology | images made entirely on a computer or electronic device, shared on social media platforms |\n| **4. Applied Art** | Artistic design **applied to utilitarian objects** of everyday use | furniture design, interior design, fashion design, graphic design |\n\n⚠️ Watch out: **architecture** is listed under **Visual Arts** in this lesson, not Applied Art."
+        }
+      ],
+      "questions": [
+        {
+          "type": "mcq",
+          "prompt": "According to the lesson, the functions of art normally fall into which three categories?",
+          "choices": ["Physical, social, and personal", "Visual, performing, and digital", "Personal, cultural, and political", "Aesthetic, practical, and religious"],
+          "answer": "Physical, social, and personal",
+          "explanation": "The three categories of the functions of art are personal, social, and physical."
+        },
+        {
+          "type": "mcq",
+          "prompt": "Which function of art addresses a collective interest rather than one's personal point of view or experience?",
+          "choices": ["Personal function", "Social function", "Physical function", "Digital function"],
+          "answer": "Social function",
+          "explanation": "The social function affects collective behavior and is used for public display and celebration."
+        },
+        {
+          "type": "mcq",
+          "prompt": "Art realized through objects and environments that fill a utilitarian need serves which function?",
+          "choices": ["Personal function", "Social function", "Physical function", "Expressive function"],
+          "answer": "Physical function",
+          "explanation": null
+        },
+        {
+          "type": "mcq",
+          "prompt": "An artist who creates art for self-expression, enjoyment, or therapeutic purposes is fulfilling which function of art?",
+          "choices": ["Personal function", "Social function", "Physical function", "Utilitarian function"],
+          "answer": "Personal function",
+          "explanation": "The personal function is subjective and depends on the artist who creates the art."
+        },
+        {
+          "type": "mcq",
+          "prompt": "Drawing, painting, sculpture, photography, printmaking, and architecture are classified under:",
+          "choices": ["Visual Arts", "Performing/Combined Arts", "Digital Arts", "Applied Art"],
+          "answer": "Visual Arts",
+          "explanation": "These works are primarily visual in nature."
+        },
+        {
+          "type": "mcq",
+          "prompt": "Which category covers art forms that can be both seen and heard and exist in both space and time?",
+          "choices": ["Visual Arts", "Performing/Combined Arts", "Digital Arts", "Applied Art"],
+          "answer": "Performing/Combined Arts",
+          "explanation": "Examples are music, dance, film, theater, and literature."
+        },
+        {
+          "type": "mcq",
+          "prompt": "Furniture design, interior design, fashion design, and graphic design are examples of:",
+          "choices": ["Visual Arts", "Performing/Combined Arts", "Digital Arts", "Applied Art"],
+          "answer": "Applied Art",
+          "explanation": "Applied art applies artistic design to utilitarian objects of everyday use."
+        },
+        {
+          "type": "mcq",
+          "prompt": "An image made entirely on a computer and shared on social media is classified as:",
+          "choices": ["Visual Arts", "Performing/Combined Arts", "Digital Arts", "Applied Art"],
+          "answer": "Digital Arts",
+          "explanation": "Digital art is work made with or presented on digital technology."
+        },
+        {
+          "type": "mcq",
+          "prompt": "Which of the following is classified under Performing/Combined Arts in the lesson?",
+          "choices": ["Film", "Sculpture", "Interior design", "Printmaking"],
+          "answer": "Film",
+          "explanation": "Sculpture and printmaking are visual arts; interior design is applied art."
+        },
+        {
+          "type": "mcq",
+          "prompt": "In the lesson's example, activists showing images of extrajudicial killings (EJK) in their campaigns shows art's power to:",
+          "choices": ["Fill a utilitarian need", "Move people and push for social and political change", "Decorate public spaces", "Preserve historical records"],
+          "answer": "Move people and push for social and political change",
+          "explanation": "Art can influence culture, politics, and even the economy."
+        },
+        {
+          "type": "true_false",
+          "prompt": "Art is universal: it can be found in all cultures.",
+          "answer": true,
+          "explanation": "This is one of the basic assumptions of art in the lesson."
+        },
+        {
+          "type": "true_false",
+          "prompt": "According to the lesson, a work of art can be assigned a function even outside of its proper context.",
+          "answer": false,
+          "explanation": "No art can be assigned a function outside of the proper context."
+        },
+        {
+          "type": "true_false",
+          "prompt": "Architecture is classified under Applied Art in this lesson.",
+          "answer": false,
+          "explanation": "The lesson lists architecture under Visual Arts."
+        },
+        {
+          "type": "true_false",
+          "prompt": "Art is limited to absorbing information.",
+          "answer": false,
+          "explanation": "Art makes you think about current ideas and inspires you to make your own."
+        },
+        {
+          "type": "true_false",
+          "prompt": "The reasons for creating art vary from person to person, culture to culture, and time period to time period.",
+          "answer": true,
+          "explanation": null
+        },
+        {
+          "type": "true_false",
+          "prompt": "All art exists for a reason, and these reasons make up the functions of art.",
+          "answer": true,
+          "explanation": null
+        },
+        {
+          "type": "identification",
+          "prompt": "An inquiry on what art is for is an inquiry on the ______ of art.",
+          "answer": ["function", "functions"],
+          "explanation": null
+        },
+        {
+          "type": "identification",
+          "prompt": "The category of art in which artistic design is applied to utilitarian objects of everyday use.",
+          "answer": ["Applied Art", "Applied Arts", "Applied"],
+          "explanation": null
+        },
+        {
+          "type": "identification",
+          "prompt": "Since art can be found in all cultures, art is said to be ______.",
+          "answer": ["universal"],
+          "explanation": "Basic assumption #1."
+        },
+        {
+          "type": "identification",
+          "prompt": "Art is a human ______, utilizing our thoughtful skill and artistry.",
+          "answer": ["creation"],
+          "explanation": "Basic assumption #3."
+        },
+        {
+          "type": "identification",
+          "prompt": "Since people look at art based on how they experience it, art is said to involve ______.",
+          "answer": ["experience"],
+          "explanation": "Basic assumption #2."
+        },
+        {
+          "type": "enumeration",
+          "prompt": "Give the three categories of the functions of art.",
+          "answer": [["Personal", "Personal function"], ["Social", "Social function"], ["Physical", "Physical function"]],
+          "explanation": null
+        },
+        {
+          "type": "enumeration",
+          "prompt": "Give the four general categories into which art is classified.",
+          "answer": [
+            ["Visual Arts", "Visual Art", "Visual"],
+            ["Performing/Combined Arts", "Performing Arts", "Combined Arts", "Performing", "Combined", "Performing and Combined Arts"],
+            ["Digital Arts", "Digital Art", "Digital"],
+            ["Applied Art", "Applied Arts", "Applied"]
+          ],
+          "explanation": null
+        },
+        {
+          "type": "enumeration",
+          "prompt": "Give the three basic assumptions about art mentioned in the lesson.",
+          "answer": [
+            ["Art is universal", "universal"],
+            ["Art involves experience", "experience"],
+            ["Art is a human creation", "human creation", "creation"]
+          ],
+          "explanation": null
+        }
+      ],
+      "flashcards": [
+        { "front": "Basic assumption #1", "back": "Art is universal: it can be found in all cultures." },
+        { "front": "Basic assumption #2", "back": "Art involves experience: people look at art based on how they experience it." },
+        { "front": "Basic assumption #3", "back": "Art is a human creation, using our thoughtful skill and artistry." },
+        { "front": "Function of art", "back": "What art is for. All art exists for a reason, but no art can be assigned a function outside its proper context." },
+        { "front": "Personal function", "back": "Subjective; depends on the artist. Art for self-expression, enjoyment, provoking thought, or therapy." },
+        { "front": "Social function", "back": "Public display and celebration; affects collective behavior and addresses a collective interest." },
+        { "front": "Physical function", "back": "Objects and environments we create that fill a utilitarian need." },
+        { "front": "Visual Arts", "back": "Primarily visual works: drawing, painting, sculpture, photography, printmaking, architecture." },
+        { "front": "Performing / Combined Arts", "back": "Can be both seen and heard; exists in both space and time: music, dance, film, theater, literature." },
+        { "front": "Digital Arts", "back": "Work made with or presented on digital technology." },
+        { "front": "Applied Art", "back": "Artistic design applied to everyday utilitarian objects: furniture, interior, fashion, graphic design." },
+        { "front": "Why art matters (impact)", "back": "Art moves people and can influence culture, politics, and even the economy." }
+      ]
+    }
+  ]
+}

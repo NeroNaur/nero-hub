@@ -26,6 +26,7 @@ const mock = import.meta.env.VITE_MOCK === '1'
     <footer v-if="!ui.focus" class="border-t border-line">
       <div class="mx-auto max-w-6xl px-5 py-5 font-mono text-xs text-muted">
         nero-hub · progress is saved in this browser only
+        <RouterLink to="/admin" class="float-right hover:text-white">admin</RouterLink>
       </div>
     </footer>
   </div>
