@@ -11,7 +11,8 @@ export const slugify = (s) =>
     .replace(/^-|-$/g, '')
     .slice(0, 60)
 
-export function parseImport(text) {
+// ctx = { subject, term } from where "+ Add lesson" was clicked; the file's own values become a double-check.
+export function parseImport(text, ctx = {}) {
   let raw
   try {
     raw = JSON.parse(text)
@@ -19,8 +20,11 @@ export function parseImport(text) {
     return { errors: [`Not valid JSON: ${e.message}`] }
   }
   const errors = []
-  const subject = raw.subject
+  const warnings = []
+  const subject = ctx.subject || raw.subject
   if (!subject) errors.push('Missing "subject" (e.g. "art-appreciation").')
+  if (ctx.subject && raw.subject && raw.subject !== ctx.subject)
+    warnings.push(`File says subject "${raw.subject}", but you're adding it to "${ctx.subject}".`)
   const list = Array.isArray(raw.modules) ? raw.modules : raw.title ? [raw] : []
   if (!list.length) errors.push('No modules found. Use "modules": [ ... ].')
 
@@ -50,15 +54,17 @@ export function parseImport(text) {
     })
     if (m.term && !['prelim', 'midterm', 'finals'].includes(m.term))
       errors.push(`${where}: "term" must be "prelim", "midterm" or "finals".`)
+    if (ctx.term && m.term && m.term !== ctx.term)
+      warnings.push(`${where}: file says "${m.term}", but you're adding it to "${ctx.term}".`)
     return {
       slug: m.slug || slugify(m.title),
       title: m.title,
       summary: m.summary || null,
       order: m.order ?? mi + 1,
-      term: m.term || null,
+      term: ctx.term || m.term || null,
       notes,
       questions,
     }
   })
-  return { subject, modules, errors }
+  return { subject, modules, errors, warnings }
 }

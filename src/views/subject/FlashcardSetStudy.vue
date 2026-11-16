@@ -3,7 +3,7 @@ import { inject, computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { progress } from '@/lib/progress'
 import { shuffle as shuffled } from '@/lib/grade'
-import { user } from '@/lib/auth'
+import { canEdit } from '@/lib/editMode'
 
 const subject = inject('subject')
 const route = useRoute()
@@ -101,7 +101,7 @@ function restart() {
 function askRestart() {
   if (window.confirm('Reset progress and stars for this set?')) restart()
 }
-const edit = () => user.value && router.push({ name: 'flashcards-edit', params: { subject: s.value.slug, set: set.value.id } })
+const edit = () => canEdit.value && router.push({ name: 'flashcards-edit', params: { subject: s.value.slug, set: set.value.id } })
 
 // ---------- autoplay ----------
 const playing = ref(false)
@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
         <h2 class="font-display text-2xl font-bold mt-1">{{ set.title }}</h2>
         <p v-if="set.description" class="text-sm text-muted">{{ set.description }}</p>
       </div>
-      <RouterLink v-if="user" :to="{ name: 'flashcards-edit', params: { subject: s.slug, set: set.id } }" class="rounded-md border border-dashed border-accent/60 px-3 py-1 font-mono text-xs text-accent hover:bg-accent/10">✏️ Edit set</RouterLink>
+      <RouterLink v-if="canEdit" :to="{ name: 'flashcards-edit', params: { subject: s.slug, set: set.id } }" class="rounded-md border border-dashed border-accent/60 px-3 py-1 font-mono text-xs text-accent hover:bg-accent/10">✏️ Edit set</RouterLink>
     </div>
 
     <div ref="stage" class="flex flex-col" :class="isFull ? 'bg-ink p-6 sm:p-10 h-screen' : ''">

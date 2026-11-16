@@ -41,3 +41,5 @@ body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
 .toggle:checked { background: var(--color-accent); }
 .toggle:checked::after { transform: translateX(1.1rem); }
 .toggle:disabled { cursor: not-allowed; }
+.toggle.toggle-dark:checked { background: var(--color-ink); }
+.toggle.toggle-dark:checked::after { background: var(--color-accent); }

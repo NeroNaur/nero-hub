@@ -3,7 +3,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { getModuleAdmin, updateRow, insertRow, deleteRow, clearCache, TERMS } from '@/lib/api'
 import { toForm, fromForm, choiceLines } from '@/lib/questionForm'
 
-const props = defineProps({ moduleId: String, subject: Object })
+const props = defineProps({ moduleId: String, subject: Object, backLabel: { type: String, default: '← Back to modules' } })
 const emit = defineEmits(['back'])
 
 const loading = ref(true)
@@ -98,7 +98,7 @@ const btn = 'rounded-lg px-3 py-1.5 text-xs font-semibold'
 
 <template>
   <div>
-    <button class="text-sm text-muted hover:text-white mb-4" @click="emit('back')">← Back to modules</button>
+    <button class="text-sm text-muted hover:text-white mb-4" @click="emit('back')">{{ backLabel }}</button>
     <p v-if="loading" class="text-muted text-sm">Loading…</p>
 
     <template v-else>

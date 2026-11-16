@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { getSubjectFull } from '@/lib/api'
 import { useAsync } from '@/lib/useAsync'
 import { ui } from '@/lib/ui'
+import { user } from '@/lib/auth'
 import LoadState from '@/components/LoadState.vue'
 
 const route = useRoute()
@@ -41,7 +42,8 @@ const current = computed(() => String(route.name).split('-')[0])
 
       <nav
         v-if="!ui.focus"
-        class="sticky top-0 z-20 -mx-5 px-5 py-3 mb-8 bg-ink/90 backdrop-blur border-b border-line overflow-x-auto"
+        class="sticky z-20 -mx-5 px-5 py-3 mb-8 bg-ink/90 backdrop-blur border-b border-line overflow-x-auto"
+        :class="user ? 'top-10' : 'top-0'"
       >
         <div class="flex gap-2 min-w-max">
           <RouterLink

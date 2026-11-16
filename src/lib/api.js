@@ -226,3 +226,26 @@ export async function uploadCardImage(file) {
   }
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
 }
+
+// ---------- Subjects (Admin page) ----------
+export async function listSubjectsAdmin() {
+  return check(
+    await supabase.from('subjects').select('id, slug, code, name, term, color, sort_order, modules(count)').order('sort_order'),
+    'subjects',
+  )
+}
+export async function saveSubject(sub) {
+  const row = {
+    slug: sub.slug,
+    code: sub.code?.trim() || null,
+    name: sub.name.trim(),
+    term: sub.term?.trim() || null,
+    color: sub.color,
+    sort_order: Number(sub.sort_order) || 0,
+  }
+  if (sub.id) return check(await supabase.from('subjects').update(row).eq('id', sub.id).select().single(), 'subject')
+  return check(await supabase.from('subjects').insert(row).select().single(), 'subject')
+}
+export async function deleteSubject(id) {
+  check(await supabase.from('subjects').delete().eq('id', id), 'subject')
+}

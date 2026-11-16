@@ -3,7 +3,7 @@ import { inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { setsInTerm, TERMS } from '@/lib/api'
 import { currentTerm } from '@/lib/term'
-import { user } from '@/lib/auth'
+import { canEdit } from '@/lib/editMode'
 import { progress } from '@/lib/progress'
 import TermPicker from '@/components/TermPicker.vue'
 
@@ -43,7 +43,7 @@ const known = (set) => set.flashcards.filter((c) => progress.flash[c.id] === 'kn
         <div class="h-full rounded" :style="{ width: (known(set) / set.flashcards.length) * 100 + '%', background: s.color }" />
       </div>
       <RouterLink
-        v-if="user"
+        v-if="canEdit"
         :to="{ name: 'flashcards-edit', params: { subject: s.slug, set: set.id } }"
         class="absolute top-4 right-4 rounded-md border border-dashed border-accent/60 px-2 py-0.5 font-mono text-xs text-accent hover:bg-accent/10"
         @click.stop
@@ -51,7 +51,7 @@ const known = (set) => set.flashcards.filter((c) => progress.flash[c.id] === 'kn
     </div>
 
     <RouterLink
-      v-if="user"
+      v-if="canEdit"
       :to="{ name: 'flashcards-new', params: { subject: s.slug }, query: { term } }"
       class="grid place-items-center rounded-xl border-2 border-dashed border-accent/50 p-5 text-accent hover:bg-accent/5 transition min-h-28"
     >
@@ -59,7 +59,7 @@ const known = (set) => set.flashcards.filter((c) => progress.flash[c.id] === 'kn
     </RouterLink>
   </div>
 
-  <div v-if="!sets.length && !user" class="rounded-xl border border-dashed border-line p-10 text-center">
+  <div v-if="!sets.length && !canEdit" class="rounded-xl border border-dashed border-line p-10 text-center">
     <p class="font-display text-lg font-bold">No {{ termLabel }} flashcards yet</p>
   </div>
 </template>

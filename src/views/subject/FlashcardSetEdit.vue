@@ -2,6 +2,7 @@
 import { inject, computed, ref, reactive, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { user } from '@/lib/auth'
+import { canEdit, editMode } from '@/lib/editMode'
 import { TERMS, modulesInTerm, saveFlashcardSet, deleteFlashcardSet, uploadCardImage, clearCache } from '@/lib/api'
 import { currentTerm, setTerm } from '@/lib/term'
 import ImportCardsModal from '@/components/ImportCardsModal.vue'
@@ -144,7 +145,11 @@ onBeforeRouteLeave(() => !dirty.value || confirm('You have unsaved changes. Leav
 
 <template>
   <div v-if="!user" class="rounded-xl border border-dashed border-line p-10 text-center text-muted">
-    Log in at <RouterLink to="/admin" class="text-accent underline">admin</RouterLink> to edit flashcards.
+    Only the site owner can edit flashcards.
+  </div>
+  <div v-else-if="!canEdit" class="rounded-xl border border-dashed border-accent/50 p-10 text-center">
+    <p class="text-muted">Turn on Edit mode to edit this set.</p>
+    <button class="mt-3 rounded-lg bg-accent px-4 py-2 font-semibold text-ink" @click="editMode.on = true">Turn on Edit mode</button>
   </div>
 
   <div v-else class="max-w-4xl mx-auto" @input="touch">
