@@ -1,0 +1,66 @@
+<script setup>
+import { provide, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { getSubjectFull } from '@/lib/api'
+import { useAsync } from '@/lib/useAsync'
+import { ui } from '@/lib/ui'
+import LoadState from '@/components/LoadState.vue'
+
+const route = useRoute()
+const { data: subject, loading, error } = useAsync(() => getSubjectFull(route.params.subject))
+provide('subject', subject)
+
+const tabs = [
+  { name: 'hallway', label: 'Hallway', icon: 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z' },
+  { name: 'study', label: 'Study', icon: 'M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-5a3 3 0 0 0-1 .2' },
+  { name: 'flashcards', label: 'Flashcards', icon: 'M7 3h10a2 2 0 0 1 2 2v12M5 7h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z' },
+  { name: 'practice', label: 'Practice', icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0-5a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
+  { name: 'exam', label: 'Mock Exam', icon: 'M12 8v5l3 2M9 2h6M12 22a8 8 0 1 0 0-16 8 8 0 0 0 0 16z' },
+  { name: 'review', label: 'Review', icon: 'M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5' },
+  { name: 'progress', label: 'Progress', icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
+  { name: 'focus', label: 'Focus', icon: 'M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M12 12h.01' },
+]
+const current = computed(() => route.name)
+</script>
+
+<template>
+  <LoadState :loading="loading" :error="error">
+    <div v-if="!subject" class="text-muted">
+      Subject not found. <RouterLink to="/" class="text-accent">Back home</RouterLink>
+    </div>
+    <template v-else>
+      <div v-if="!ui.focus" class="mb-6">
+        <RouterLink to="/" class="font-mono text-xs text-muted hover:text-white">← All subjects</RouterLink>
+        <p class="font-mono text-xs mt-3" :style="{ color: subject.color }">{{ subject.code }}</p>
+        <h1 class="font-display text-3xl sm:text-4xl font-bold tracking-tight">{{ subject.name }}</h1>
+      </div>
+
+      <nav
+        v-if="!ui.focus"
+        class="sticky top-0 z-20 -mx-5 px-5 py-3 mb-8 bg-ink/90 backdrop-blur border-b border-line overflow-x-auto"
+      >
+        <div class="flex gap-2 min-w-max">
+          <RouterLink
+            v-for="t in tabs"
+            :key="t.name"
+            :to="{ name: t.name, params: { subject: subject.slug } }"
+            class="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition"
+            :class="
+              current === t.name
+                ? 'border-transparent text-ink'
+                : 'border-line text-white/80 hover:border-white/30 hover:text-white'
+            "
+            :style="current === t.name ? { background: subject.color } : {}"
+          >
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path :d="t.icon" />
+            </svg>
+            {{ t.label }}
+          </RouterLink>
+        </div>
+      </nav>
+
+      <RouterView :key="route.name" />
+    </template>
+  </LoadState>
+</template>

@@ -14,3 +14,23 @@
 html, body { background: var(--color-ink); color: #e7e7ee; }
 body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
 ::selection { background: var(--color-accent); color: var(--color-ink); }
+
+/* Rendered notes (Study / Focus) */
+.prose-nh { line-height: 1.75; color: #d4d4de; max-width: 72ch; }
+.prose-nh h1 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; color: #fff; margin: 0 0 1rem; }
+.prose-nh h2 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: #fff; margin: 2rem 0 .75rem; }
+.prose-nh h3 { font-weight: 600; color: #fff; margin: 1.5rem 0 .5rem; }
+.prose-nh p, .prose-nh ul, .prose-nh ol, .prose-nh blockquote, .prose-nh table, .prose-nh pre { margin: 0 0 1rem; }
+.prose-nh ul { list-style: disc; padding-left: 1.4rem; }
+.prose-nh ol { list-style: decimal; padding-left: 1.4rem; }
+.prose-nh li { margin: .25rem 0; }
+.prose-nh strong { color: #fff; }
+.prose-nh a { color: var(--color-accent); text-decoration: underline; }
+.prose-nh blockquote { border-left: 3px solid var(--color-line); padding-left: 1rem; color: var(--color-muted); }
+.prose-nh code { font-family: var(--font-mono); font-size: .875em; background: #1d1d26; padding: .1rem .35rem; border-radius: .3rem; }
+.prose-nh pre { background: #1d1d26; padding: 1rem; border-radius: .6rem; overflow-x: auto; }
+.prose-nh pre code { background: none; padding: 0; }
+.prose-nh table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.prose-nh th, .prose-nh td { border: 1px solid var(--color-line); padding: .4rem .6rem; text-align: left; }
+.prose-nh img { border-radius: .6rem; max-width: 100%; }
+.prose-nh hr { border-color: var(--color-line); margin: 2rem 0; }

@@ -13,8 +13,14 @@ Vue 3 + Vite + Tailwind, Supabase for data, deployed on Vercel.
 3. **Env vars:** copy `.env.example` to `.env` (local) and add the same two values in Vercel → Settings → Environment Variables.
 4. `npm install && npm run dev`
 
-## Structure
+Also run `supabase/002_flashcards.sql` after `schema.sql`.
+
+## Each subject has
+Hallway · Study · Flashcards · Practice (incl. Mock Quiz) · Mock Exam · Review (mistake bank) · Progress · Focus (Pomodoro)
+
+Progress, scores and the mistake bank are stored in each visitor's browser (localStorage), so classmates can use the site without accounts.
+
+## Local dev with test data
 ```
-Subject → Module → Review | Practice | Mock Quiz
-Subject → Mock Exam (questions from every module)
+VITE_MOCK=1 npm run dev
 ```
