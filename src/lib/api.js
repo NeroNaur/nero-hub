@@ -38,11 +38,21 @@ export async function getSubjectFull(slug, { fresh = false } = {}) {
     subject = mockSubjectFull(slug)
   } else {
     const head = 'id, slug, code, name, term, color'
+    const MAT = ', materials(id, kind, title, url, storage_path, file_name, size_bytes, sort_order, created_at)'
     let res = await supabase
       .from('subjects')
-      .select(`${head}, modules(${MODULE_FIELDS}), flashcard_sets(${SET_FIELDS})`)
+      .select(`${head}, modules(${MODULE_FIELDS}${MAT}), flashcard_sets(${SET_FIELDS})`)
       .eq('slug', slug)
       .maybeSingle()
+    if (res.error) {
+      // 004 (materials) not run yet
+      res = await supabase
+        .from('subjects')
+        .select(`${head}, modules(${MODULE_FIELDS}), flashcard_sets(${SET_FIELDS})`)
+        .eq('slug', slug)
+        .maybeSingle()
+      if (res.data) res.data.needsMaterials = true
+    }
     if (res.error) {
       // 003 migration not run yet → load without terms/sets
       res = await supabase
@@ -61,6 +71,7 @@ export async function getSubjectFull(slug, { fresh = false } = {}) {
   for (const m of subject.modules) {
     m.reviews = (m.reviews || []).sort(bySort)
     m.questions = (m.questions || []).map((q) => ({ ...q, module_id: m.id }))
+    m.materials = (m.materials || []).sort(bySort)
   }
   subject.sets = (subject.flashcard_sets || []).sort(bySort)
   delete subject.flashcard_sets
@@ -248,4 +259,37 @@ export async function saveSubject(sub) {
 }
 export async function deleteSubject(id) {
   check(await supabase.from('subjects').delete().eq('id', id), 'subject')
+}
+
+// ---------- Lesson materials ----------
+const MAT_BUCKET = 'materials'
+export const MAX_FILE_MB = 50
+
+export async function addMaterial({ module_id, kind, title, url, file, sort_order }, onStage = () => {}) {
+  let row = { module_id, kind, title: title.trim(), url, sort_order }
+  if (file) {
+    if (file.size > MAX_FILE_MB * 1024 * 1024)
+      throw new Error(`That file is ${(file.size / 1048576).toFixed(1)} MB. The limit is ${MAX_FILE_MB} MB; compress it or add it as a Google Drive link.`)
+    onStage('Uploading…')
+    const safe = file.name.replace(/[^\w.\-]+/g, '_')
+    const path = `${module_id}/${crypto.randomUUID()}-${safe}`
+    const { error } = await supabase.storage.from(MAT_BUCKET).upload(path, file, { contentType: file.type || undefined })
+    if (error) {
+      if (/bucket/i.test(error.message)) throw new Error('File storage missing — run supabase/004_lesson_materials.sql.')
+      if (/mime|type/i.test(error.message)) throw new Error('Only PDF, Word (.doc/.docx) and PowerPoint (.ppt/.pptx) files can be uploaded.')
+      throw new Error(`Upload: ${error.message}`)
+    }
+    row = { ...row, url: supabase.storage.from(MAT_BUCKET).getPublicUrl(path).data.publicUrl, storage_path: path, file_name: file.name, size_bytes: file.size }
+  }
+  onStage('Saving…')
+  return check(await supabase.from('materials').insert(row).select().single(), 'material')
+}
+
+export async function updateMaterial(id, patch) {
+  check(await supabase.from('materials').update(patch).eq('id', id), 'material')
+}
+
+export async function deleteMaterial(m) {
+  check(await supabase.from('materials').delete().eq('id', m.id), 'material')
+  if (m.storage_path) await supabase.storage.from(MAT_BUCKET).remove([m.storage_path])
 }

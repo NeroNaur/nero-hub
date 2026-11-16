@@ -12,6 +12,11 @@ const modules = [
     term: 'prelim',
     title: 'Hashing Basics',
     summary: 'What hash functions are and why blockchains need them.',
+    materials: [
+      { id: 'mat1', kind: 'pdf', title: 'Hashing slides', url: 'https://example.com/hash.pdf', storage_path: 'm1/x-hash.pdf', file_name: 'hash.pdf', size_bytes: 2400000, sort_order: 1 },
+      { id: 'mat2', kind: 'video', title: 'SHA-256 explained', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', sort_order: 2 },
+      { id: 'mat3', kind: 'slides', title: 'Lecture deck', url: 'https://example.com/deck.pptx', storage_path: 'm1/y-deck.pptx', file_name: 'deck.pptx', size_bytes: 5100000, sort_order: 3 },
+    ],
     sort_order: 1,
     reviews: [
       {

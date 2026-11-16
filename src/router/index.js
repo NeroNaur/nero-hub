@@ -10,6 +10,7 @@ const routes = [
     children: [
       { path: '', name: 'hallway', component: sub('HallwayTab') },
       { path: 'study/:module?', name: 'study', component: sub('StudyTab') },
+      { path: 'materials', name: 'materials', component: sub('MaterialsTab') },
       { path: 'flashcards', name: 'flashcards', component: sub('FlashcardsTab') },
       { path: 'flashcards/new', name: 'flashcards-new', component: sub('FlashcardSetEdit') },
       { path: 'flashcards/:set', name: 'flashcards-set', component: sub('FlashcardSetStudy') },

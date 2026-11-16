@@ -18,6 +18,7 @@ provide('reloadSubject', async () => {
 const tabs = [
   { name: 'hallway', label: 'Hallway', icon: 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z' },
   { name: 'study', label: 'Study', icon: 'M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-5a3 3 0 0 0-1 .2' },
+  { name: 'materials', label: 'Materials', icon: 'M21.4 11.1 12.2 20.3a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5' },
   { name: 'flashcards', label: 'Flashcards', icon: 'M7 3h10a2 2 0 0 1 2 2v12M5 7h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z' },
   { name: 'practice', label: 'Practice', icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0-5a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
   { name: 'exam', label: 'Mock Exam', icon: 'M12 8v5l3 2M9 2h6M12 22a8 8 0 1 0 0-16 8 8 0 0 0 0 16z' },

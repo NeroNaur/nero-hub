@@ -14,6 +14,7 @@ Vue 3 + Vite + Tailwind, Supabase for data, deployed on Vercel.
 4. `npm install && npm run dev`
 
 Then run `supabase/003_terms_flashcard_sets.sql` (terms, flashcard sets, image storage). `002` is optional/superseded.
+Then `supabase/004_lesson_materials.sql` (lesson PDFs/docs/slides/video links + file storage).
 
 ## Each subject has
 Hallway · Study · Flashcards · Practice (incl. Mock Quiz) · Mock Exam · Review (mistake bank) · Progress · Focus (Pomodoro)

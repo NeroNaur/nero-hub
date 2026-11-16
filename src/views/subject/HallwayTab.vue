@@ -100,7 +100,7 @@ const stats = computed(() => [
         <p class="font-semibold">{{ m.title }} <span v-if="!m.term" class="font-mono text-xs text-amber-300">no term</span></p>
         <p v-if="m.summary" class="text-sm text-muted">{{ m.summary }}</p>
         <p class="font-mono text-xs text-muted mt-1">
-          {{ m.questions.length }} questions
+          {{ m.questions.length }} questions<template v-if="m.materials?.length"> · 📎 {{ m.materials.length }} material{{ m.materials.length === 1 ? '' : 's' }}</template>
           <template v-if="moduleAccuracy(m)"> · <span :style="{ color: s.color }">{{ moduleAccuracy(m).pct }}% accuracy</span></template>
         </p>
       </div>

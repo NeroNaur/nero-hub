@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { renderMarkdown } from '@/lib/markdown'
 import { progress } from '@/lib/progress'
 import EmptyContent from '@/components/EmptyContent.vue'
+import MaterialsList from '@/components/MaterialsList.vue'
+import { canEdit } from '@/lib/editMode'
 import TermPicker from '@/components/TermPicker.vue'
 import { modulesInTerm } from '@/lib/api'
 import { currentTerm } from '@/lib/term'
@@ -53,6 +55,10 @@ const go = (m) => router.replace({ name: 'study', params: { subject: s.value.slu
 
     <article>
       <h2 class="font-display text-2xl font-bold mb-6">{{ current.title }}</h2>
+      <section v-if="current.materials?.length || canEdit" class="mb-8 rounded-2xl border border-line p-4">
+        <p class="mb-3 font-mono text-xs text-muted">📎 MATERIALS</p>
+        <MaterialsList :subject="s" :module="current" />
+      </section>
       <EmptyContent v-if="!html.length" what="notes for this module" />
       <div v-for="(h, i) in html" :key="i" class="prose-nh mb-10" v-html="h" />
 
