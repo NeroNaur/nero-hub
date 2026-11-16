@@ -1,6 +1,6 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getModuleAdmin, updateRow, insertRow, deleteRow, clearCache } from '@/lib/api'
+import { getModuleAdmin, updateRow, insertRow, deleteRow, clearCache, TERMS } from '@/lib/api'
 import { toForm, fromForm, choiceLines } from '@/lib/questionForm'
 
 const props = defineProps({ moduleId: String, subject: Object })
@@ -9,10 +9,9 @@ const emit = defineEmits(['back'])
 const loading = ref(true)
 const error = ref('')
 const flash = ref('')
-const meta = reactive({ title: '', summary: '', sort_order: 0 })
+const meta = reactive({ title: '', summary: '', sort_order: 0, term: '' })
 const notes = ref([]) // { id, title, content, _dirty }
 const questions = ref([]) // { id, form, _dirty, _err }
-const cards = ref([]) // { id, front, back, _dirty }
 const section = ref('questions')
 
 const typeLabel = { mcq: 'Multiple choice', true_false: 'True/False', identification: 'Identification', enumeration: 'Enumeration' }
@@ -21,10 +20,9 @@ async function load() {
   loading.value = true
   try {
     const m = await getModuleAdmin(props.moduleId)
-    Object.assign(meta, { title: m.title, summary: m.summary || '', sort_order: m.sort_order ?? 0 })
+    Object.assign(meta, { title: m.title, summary: m.summary || '', sort_order: m.sort_order ?? 0, term: m.term || '' })
     notes.value = m.reviews.map((r) => ({ id: r.id, title: r.title || '', content: r.content, sort_order: r.sort_order }))
     questions.value = m.questions.map((q) => ({ id: q.id, form: toForm(q) }))
-    cards.value = m.flashcards.map((c) => ({ id: c.id, front: c.front, back: c.back, sort_order: c.sort_order }))
   } catch (e) {
     error.value = e.message
   } finally {
@@ -50,7 +48,7 @@ async function run(fn, msg) {
 
 // ---- module ----
 const saveMeta = () =>
-  run(() => updateRow('modules', props.moduleId, { title: meta.title.trim(), summary: meta.summary.trim() || null, sort_order: Number(meta.sort_order) || 0 }), 'Module saved')
+  run(() => updateRow('modules', props.moduleId, { title: meta.title.trim(), summary: meta.summary.trim() || null, sort_order: Number(meta.sort_order) || 0, term: meta.term || null }), 'Module saved')
 
 // ---- notes ----
 function addNote() {
@@ -94,25 +92,6 @@ async function removeQuestion(q, i) {
   questions.value.splice(i, 1)
 }
 
-// ---- flashcards ----
-function addCard() {
-  cards.value.push({ id: null, front: '', back: '', sort_order: cards.value.length + 1, _dirty: true })
-}
-const saveCard = (c) => {
-  if (!c.front.trim() || !c.back.trim()) return (error.value = 'A flashcard needs a front and a back.')
-  return run(async () => {
-    const row = { front: c.front.trim(), back: c.back.trim(), sort_order: c.sort_order }
-    if (c.id) await updateRow('flashcards', c.id, row)
-    else c.id = (await insertRow('flashcards', { ...row, module_id: props.moduleId })).id
-    c._dirty = false
-  }, 'Card saved')
-}
-async function removeCard(c, i) {
-  if (!confirm('Delete this flashcard?')) return
-  if (c.id) await run(() => deleteRow('flashcards', c.id), 'Card deleted')
-  cards.value.splice(i, 1)
-}
-
 const input = 'w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm focus:border-white/40 focus:outline-none'
 const btn = 'rounded-lg px-3 py-1.5 text-xs font-semibold'
 </script>
@@ -126,8 +105,14 @@ const btn = 'rounded-lg px-3 py-1.5 text-xs font-semibold'
       <!-- Module details -->
       <div class="rounded-xl border border-line bg-panel p-4 space-y-3 mb-6">
         <p class="font-mono text-xs text-muted">{{ subject.name }} · MODULE</p>
-        <div class="grid grid-cols-[1fr_90px] gap-3">
+        <div class="grid grid-cols-[1fr_130px_90px] gap-3">
           <label class="text-xs text-muted">Title<input v-model="meta.title" :class="input" class="mt-1" /></label>
+          <label class="text-xs text-muted">Term
+            <select v-model="meta.term" :class="input" class="mt-1">
+              <option value="">— none —</option>
+              <option v-for="t in TERMS" :key="t.key" :value="t.key">{{ t.label }}</option>
+            </select>
+          </label>
           <label class="text-xs text-muted">Order<input v-model.number="meta.sort_order" type="number" :class="input" class="mt-1" /></label>
         </div>
         <label class="block text-xs text-muted">Description (optional)<textarea v-model="meta.summary" rows="2" :class="input" class="mt-1" /></label>
@@ -136,7 +121,7 @@ const btn = 'rounded-lg px-3 py-1.5 text-xs font-semibold'
 
       <div class="flex gap-1 border-b border-line mb-4">
         <button
-          v-for="s in [{ k: 'questions', l: `Questions (${questions.length})` }, { k: 'notes', l: `Notes (${notes.length})` }, { k: 'cards', l: `Flashcards (${cards.length})` }]"
+          v-for="s in [{ k: 'questions', l: `Questions (${questions.length})` }, { k: 'notes', l: `Notes (${notes.length})` }]"
           :key="s.k"
           class="px-3 py-2 -mb-px border-b-2 text-sm"
           :class="section === s.k ? 'border-accent text-white' : 'border-transparent text-muted hover:text-white'"
@@ -190,7 +175,7 @@ const btn = 'rounded-lg px-3 py-1.5 text-xs font-semibold'
       </section>
 
       <!-- Notes -->
-      <section v-else-if="section === 'notes'" class="space-y-3">
+      <section v-else" class="space-y-3">
         <div v-for="(n, i) in notes" :key="n.id || 'n' + i" class="rounded-xl border bg-panel p-4 space-y-3" :class="n._dirty ? 'border-amber-400/50' : 'border-line'" @input="n._dirty = true">
           <div class="flex items-center gap-2">
             <input v-model="n.title" placeholder="Section title (optional)" :class="input" />
@@ -201,19 +186,6 @@ const btn = 'rounded-lg px-3 py-1.5 text-xs font-semibold'
           <button :class="btn" class="bg-accent text-ink disabled:opacity-40" :disabled="!n._dirty" @click="saveNote(n)">Save</button>
         </div>
         <button :class="btn" class="border border-line hover:border-white/40" @click="addNote">+ Note section</button>
-      </section>
-
-      <!-- Flashcards -->
-      <section v-else class="space-y-3">
-        <div v-for="(c, i) in cards" :key="c.id || 'c' + i" class="rounded-xl border bg-panel p-4 grid sm:grid-cols-[1fr_2fr_auto] gap-3 items-start" :class="c._dirty ? 'border-amber-400/50' : 'border-line'" @input="c._dirty = true">
-          <input v-model="c.front" placeholder="Front" :class="input" />
-          <textarea v-model="c.back" rows="2" placeholder="Back" :class="input" />
-          <div class="flex sm:flex-col gap-2">
-            <button :class="btn" class="bg-accent text-ink disabled:opacity-40" :disabled="!c._dirty" @click="saveCard(c)">Save</button>
-            <button class="text-xs text-red-300 hover:underline" @click="removeCard(c, i)">Delete</button>
-          </div>
-        </div>
-        <button :class="btn" class="border border-line hover:border-white/40" @click="addCard">+ Flashcard</button>
       </section>
 
       <div class="fixed bottom-5 right-5 space-y-2 text-sm">

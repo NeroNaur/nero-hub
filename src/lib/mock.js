@@ -9,6 +9,7 @@ const modules = [
     id: 'm1',
     subject_id: 's1',
     slug: 'hashing',
+    term: 'prelim',
     title: 'Hashing Basics',
     summary: 'What hash functions are and why blockchains need them.',
     sort_order: 1,
@@ -27,16 +28,12 @@ const modules = [
       { id: 'q3', type: 'identification', prompt: 'A tiny change in input drastically changes the hash. What is this property called?', answer: ['avalanche effect', 'avalanche'], explanation: null },
       { id: 'q4', type: 'enumeration', prompt: 'Give the three security properties of cryptographic hash functions.', answer: [['pre-image resistance', 'preimage resistance'], ['second pre-image resistance', 'second preimage resistance'], 'collision resistance'], explanation: null },
     ],
-    flashcards: [
-      { id: 'f1', front: 'Hash function', back: 'Maps any-size input to a fixed-size output.', sort_order: 1 },
-      { id: 'f2', front: 'Avalanche effect', back: 'Small input change → very different hash.', sort_order: 2 },
-      { id: 'f3', front: 'SHA-256 output length', back: '256 bits / 64 hex characters', sort_order: 3 },
-    ],
   },
   {
     id: 'm2',
     subject_id: 's1',
     slug: 'consensus',
+    term: 'midterm',
     title: 'Consensus',
     summary: 'How nodes agree on one history.',
     sort_order: 2,
@@ -45,8 +42,19 @@ const modules = [
       { id: 'q5', type: 'mcq', prompt: 'Which consensus mechanism does Bitcoin use?', choices: ['Proof of Stake', 'Proof of Work', 'Proof of Authority', 'Delegated PoS'], answer: 'Proof of Work', explanation: null },
       { id: 'q6', type: 'identification', prompt: 'The number miners change to find a valid block hash.', answer: 'nonce', explanation: null },
     ],
-    flashcards: [{ id: 'f4', front: 'Nonce', back: 'Number used once; miners vary it to find a valid hash.', sort_order: 1 }],
   },
+]
+
+const sets = [
+  {
+    id: 'set1', subject_id: 's1', term: 'prelim', module_id: 'm1', title: 'Hashing terms', description: 'Key words from the hashing lesson', sort_order: 1,
+    flashcards: [
+      { id: 'f1', front: 'Hash function', back: 'Maps any-size input to a fixed-size output.', sort_order: 1 },
+      { id: 'f2', front: 'Avalanche effect', back: 'Small input change → very different hash.', sort_order: 2 },
+      { id: 'f3', front: 'SHA-256 output length', back: '256 bits / 64 hex characters', sort_order: 3, back_image: 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22120%22><rect width=%22300%22 height=%22120%22 fill=%22%23f59e0b%22/><text x=%2220%22 y=%2270%22 font-size=%2232%22>256 bits</text></svg>' },
+    ],
+  },
+  { id: 'set2', subject_id: 's1', term: 'midterm', module_id: 'm2', title: 'Consensus terms', description: null, sort_order: 1, flashcards: [{ id: 'f4', front: 'Nonce', back: 'Number used once; miners vary it to find a valid hash.', sort_order: 1 }] },
 ]
 
 const clone = (x) => JSON.parse(JSON.stringify(x))
@@ -58,5 +66,5 @@ export function mockSubjects() {
 export function mockSubjectFull(slug) {
   const s = subjects.find((x) => x.slug === slug)
   if (!s) return null
-  return clone({ ...s, modules: modules.filter((m) => m.subject_id === s.id) })
+  return clone({ ...s, modules: modules.filter((m) => m.subject_id === s.id), flashcard_sets: sets.filter((x) => x.subject_id === s.id) })
 }

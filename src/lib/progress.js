@@ -18,6 +18,9 @@ export const progress = reactive({
   mistakes: init.mistakes || {}, // subjectSlug -> [questionId]
   flash: init.flash || {}, // cardId -> 'known' | 'again'
   last: init.last || {}, // subjectSlug -> {module}
+  term: init.term || {}, // subjectSlug -> 'prelim' | 'midterm' | 'finals'
+  stars: init.stars || {}, // cardId -> true
+  cardPrefs: init.cardPrefs || { track: false, starredOnly: false, front: 'term', tts: false, shuffle: false },
 })
 
 watch(
@@ -66,7 +69,10 @@ export function resetSubject(subject) {
   delete progress.mistakes[subject.slug]
   delete progress.last[subject.slug]
   for (const q of subject.questions) delete progress.stats[q.id]
-  for (const c of subject.flashcards) delete progress.flash[c.id]
+  for (const c of subject.flashcards) {
+    delete progress.flash[c.id]
+    delete progress.stars[c.id]
+  }
 }
 
 // "I was right": flip a recorded wrong answer to right.

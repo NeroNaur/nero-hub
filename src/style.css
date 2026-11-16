@@ -34,3 +34,10 @@ body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
 .prose-nh th, .prose-nh td { border: 1px solid var(--color-line); padding: .4rem .6rem; text-align: left; }
 .prose-nh img { border-radius: .6rem; max-width: 100%; }
 .prose-nh hr { border-color: var(--color-line); margin: 2rem 0; }
+
+/* Switch-style checkbox */
+.toggle { appearance: none; width: 2.5rem; height: 1.4rem; border-radius: 999px; background: #3a3a46; position: relative; cursor: pointer; transition: background .2s; flex-shrink: 0; }
+.toggle::after { content: ''; position: absolute; top: .2rem; left: .2rem; width: 1rem; height: 1rem; border-radius: 999px; background: #fff; transition: transform .2s; }
+.toggle:checked { background: var(--color-accent); }
+.toggle:checked::after { transform: translateX(1.1rem); }
+.toggle:disabled { cursor: not-allowed; }

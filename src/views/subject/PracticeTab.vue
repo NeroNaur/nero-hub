@@ -1,24 +1,29 @@
 <script setup>
-import { inject, computed, ref } from 'vue'
+import { inject, computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { shuffle } from '@/lib/grade'
 import ModulePicker from '@/components/ModulePicker.vue'
 import QuizRunner from '@/components/QuizRunner.vue'
 import EmptyContent from '@/components/EmptyContent.vue'
+import TermPicker from '@/components/TermPicker.vue'
+import { modulesInTerm } from '@/lib/api'
+import { currentTerm } from '@/lib/term'
 
 const subject = inject('subject')
 const route = useRoute()
 const s = computed(() => subject.value)
+const mods = computed(() => modulesInTerm(s.value, currentTerm(s.value)))
 
 const moduleSlug = ref(route.query.m || '')
+watch(mods, () => { if (!mods.value.some((m) => m.slug === moduleSlug.value)) moduleSlug.value = '' })
 const mode = ref('practice') // practice | quiz
 const quizSize = ref(15)
 const practiceSize = ref(null) // empty = all
 const running = ref(null) // { questions, key }
 
 const pool = computed(() => {
-  const mod = s.value.modules.find((m) => m.slug === moduleSlug.value)
-  return mod ? mod.questions : s.value.questions
+  const mod = mods.value.find((m) => m.slug === moduleSlug.value)
+  return mod ? mod.questions : mods.value.flatMap((m) => m.questions)
 })
 
 function start() {
@@ -31,7 +36,8 @@ function start() {
 </script>
 
 <template>
-  <EmptyContent v-if="!s.questions.length" what="questions" />
+  <TermPicker v-if="!running" :subject="s" />
+  <EmptyContent v-if="!mods.some((m) => m.questions.length)" what="questions in this term" />
 
   <div v-else-if="running" class="max-w-3xl mx-auto">
     <QuizRunner
@@ -48,7 +54,7 @@ function start() {
   <div v-else class="max-w-xl mx-auto rounded-2xl border border-line bg-panel p-6 sm:p-8 space-y-6">
     <div>
       <p class="font-mono text-xs text-muted mb-2">MODULE</p>
-      <ModulePicker v-model="moduleSlug" :modules="s.modules.filter((m) => m.questions.length)" class="w-full" />
+      <ModulePicker v-model="moduleSlug" all-label="All lessons in this term" :modules="mods.filter((m) => m.questions.length)" class="w-full" />
       <p class="font-mono text-xs text-muted mt-2">{{ pool.length }} questions available</p>
     </div>
 

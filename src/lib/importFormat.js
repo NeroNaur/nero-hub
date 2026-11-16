@@ -48,18 +48,16 @@ export function parseImport(text) {
         difficulty: q.difficulty || 1,
       }
     })
-    const flashcards = (m.flashcards || []).map((c, ci) => {
-      if (!c.front || !c.back) errors.push(`${where} card ${ci + 1}: needs "front" and "back".`)
-      return { front: c.front, back: c.back }
-    })
+    if (m.term && !['prelim', 'midterm', 'finals'].includes(m.term))
+      errors.push(`${where}: "term" must be "prelim", "midterm" or "finals".`)
     return {
       slug: m.slug || slugify(m.title),
       title: m.title,
       summary: m.summary || null,
       order: m.order ?? mi + 1,
+      term: m.term || null,
       notes,
       questions,
-      flashcards,
     }
   })
   return { subject, modules, errors }

@@ -63,7 +63,7 @@ async function runImport() {
   for (const m of p.modules) {
     try {
       await importModule(targetSubject.value.id, m, { replace: replace.value })
-      log.value.push({ ok: true, text: `✓ ${m.title} — ${m.notes.length} notes, ${m.questions.length} questions, ${m.flashcards.length} cards` })
+      log.value.push({ ok: true, text: `✓ ${m.title} — ${m.notes.length} notes, ${m.questions.length} questions` })
     } catch (e) {
       log.value.push({ ok: false, text: `✗ ${m.title}: ${e.message}` })
     }
@@ -77,6 +77,7 @@ async function runImport() {
 const nSubject = ref('')
 const nModuleSlug = ref('') // '' = new module
 const nTitle = ref('')
+const nTerm = ref('prelim')
 const nText = ref('')
 const nModules = computed(() => subjects.value.find((s) => s.slug === nSubject.value)?.modules || [])
 
@@ -96,9 +97,9 @@ async function saveNotes() {
         title,
         summary: null,
         order: existing ? existing.sort_order : nModules.value.length + 1,
+        term: existing ? null : nTerm.value,
         notes: [{ title: null, content: nText.value }],
         questions: [],
-        flashcards: [],
       },
       { replace: true },
     )
@@ -120,7 +121,7 @@ async function closeEditor() {
   await loadSubjects()
 }
 async function remove(subj, m) {
-  if (!confirm(`Delete "${m.title}" from ${subj.name}? This removes its notes, questions and flashcards.`)) return
+  if (!confirm(`Delete "${m.title}" from ${subj.name}? This removes its notes and questions.`)) return
   try {
     await deleteModule(m.id)
     clearCache(subj.slug)
@@ -137,14 +138,14 @@ const example = `{
       "title": "Lesson 1: Defining Art",
       "summary": "One-line summary",
       "order": 1,
+      "term": "prelim",
       "notes": [{ "title": "Defining Art", "content": "Markdown **notes** here" }],
       "questions": [
         { "type": "mcq", "prompt": "…", "choices": ["A", "B", "C"], "answer": "B", "explanation": "…" },
         { "type": "true_false", "prompt": "…", "answer": true },
         { "type": "identification", "prompt": "…", "answer": ["main answer", "accepted alt"] },
         { "type": "enumeration", "prompt": "…", "answer": ["item 1", ["item 2", "alt"], "item 3"] }
-      ],
-      "flashcards": [{ "front": "Term", "back": "Definition" }]
+      ]
     }
   ]
 }`
@@ -201,7 +202,7 @@ const example = `{
             <template v-else>
               <p class="font-semibold">→ {{ targetSubject.name }}</p>
               <p v-for="m in parsed.modules" :key="m.slug" class="font-mono text-xs text-muted">
-                {{ m.title }} · {{ m.notes.length }} notes · {{ m.questions.length }} Q · {{ m.flashcards.length }} cards
+                {{ m.title }} · {{ m.term || 'no term' }} · {{ m.notes.length }} notes · {{ m.questions.length }} Q
                 <span v-if="targetSubject.modules.some((x) => x.slug === m.slug)" class="text-amber-300">(updates existing)</span>
               </p>
             </template>
@@ -236,7 +237,12 @@ const example = `{
             <option v-for="m in nModules" :key="m.id" :value="m.slug">{{ m.title }}</option>
           </select>
         </div>
-        <input v-if="!nModuleSlug" v-model="nTitle" placeholder="New module title, e.g. Lesson 2: Assumptions of Art" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm" />
+        <div v-if="!nModuleSlug" class="grid grid-cols-[1fr_140px] gap-3">
+          <input v-model="nTitle" placeholder="New lesson title, e.g. Lesson Two" class="rounded-lg border border-line bg-ink px-3 py-2 text-sm" />
+          <select v-model="nTerm" class="rounded-lg border border-line bg-panel px-3 py-2 text-sm">
+            <option value="prelim">Prelim</option><option value="midterm">Midterm</option><option value="finals">Finals</option>
+          </select>
+        </div>
         <textarea v-model="nText" rows="14" placeholder="Paste notes…" class="w-full rounded-xl border border-line bg-ink p-4 text-sm" />
         <button
           class="rounded-lg bg-accent px-5 py-2 font-semibold text-ink disabled:opacity-40"
@@ -254,6 +260,7 @@ const example = `{
           <div v-for="m in s.modules" :key="m.id" class="flex items-center gap-3 border-t border-line py-2 text-sm">
             <span class="font-mono text-xs text-muted w-6">{{ m.sort_order }}</span>
             <span class="flex-1">{{ m.title }}</span>
+            <span class="font-mono text-xs" :class="m.term ? 'text-muted' : 'text-amber-300'">{{ m.term || 'no term' }}</span>
             <button class="text-xs text-accent hover:underline" @click="editing = { subject: s, moduleId: m.id }">Edit</button>
             <button class="text-xs text-red-300 hover:underline" @click="remove(s, m)">Delete</button>
           </div>

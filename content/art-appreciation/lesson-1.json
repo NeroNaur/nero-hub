@@ -6,6 +6,7 @@
       "title": "Lesson One",
       "summary": "This lesson will tackle how art is defined, why it matters, what is it for, and some preliminary assumptions that people normally hold about art.",
       "order": 1,
+      "term": "prelim",
       "notes": [
         {
           "title": "Introduction",
@@ -296,56 +297,6 @@
             ]
           ],
           "explanation": null
-        }
-      ],
-      "flashcards": [
-        {
-          "front": "Art is universal",
-          "back": "It is universal as it can be found in all cultures. This is a basic assumption of what art is."
-        },
-        {
-          "front": "Art involves experience",
-          "back": "People look at art based on how they experience it. So art involves experience- another basic assumption."
-        },
-        {
-          "front": "Art is a human creation",
-          "back": "This is a basic assumption of art- it is a human creation, utilizing our thoughtful skill and artistry."
-        },
-        {
-          "front": "Function of art",
-          "back": "An inquiry on what art is for is an inquiry on the function of art."
-        },
-        {
-          "front": "Personal Function",
-          "back": "Functions of art are highly varied and subjective, depending on the artist who creates art. Artist can create art out of self-expression, enjoyment, meant to provoke thought, or therapeutic purposes."
-        },
-        {
-          "front": "Social Function",
-          "back": "Art is used for public display and celebration. It is used to affect collective behavior- addresses a particular collective interest as opposed to one’s personal point of view or experience."
-        },
-        {
-          "front": "Physical Function",
-          "back": "This function of art can be realized through the objects and environments we create which fills a utilitarian need."
-        },
-        {
-          "front": "Visual Arts",
-          "back": "Art forms that create works that are primarily visual in nature, such as, drawing, painting, sculpture, photography, printmaking, and architecture."
-        },
-        {
-          "front": "Performing/Combined Arts",
-          "back": "Art forms that combine variety of media or materials which can be both seen and heard, and which exists in both space and time. Examples are music, dance, film, theater, and literature."
-        },
-        {
-          "front": "Digital Arts",
-          "back": "Work made with digital technology or presented on digital technology. This includes images done completely on computer or any electronic device using multiple social media platforms."
-        },
-        {
-          "front": "Applied Art",
-          "back": "An art form in which artistic design is applied to utilitarian objects or items of everyday use such as furniture design, interior design, fashion design, and graphic design."
-        },
-        {
-          "front": "Influence of art",
-          "back": "Thus, art can potentially influence our culture, politics, and even the economy."
         }
       ]
     }

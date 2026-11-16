@@ -13,10 +13,13 @@ Vue 3 + Vite + Tailwind, Supabase for data, deployed on Vercel.
 3. **Env vars:** copy `.env.example` to `.env` (local) and add the same two values in Vercel → Settings → Environment Variables.
 4. `npm install && npm run dev`
 
-Also run `supabase/002_flashcards.sql` after `schema.sql`.
+Then run `supabase/003_terms_flashcard_sets.sql` (terms, flashcard sets, image storage). `002` is optional/superseded.
 
 ## Each subject has
 Hallway · Study · Flashcards · Practice (incl. Mock Quiz) · Mock Exam · Review (mistake bank) · Progress · Focus (Pomodoro)
+
+Lessons and flashcard sets are grouped by term: Prelim / Midterm / Finals.
+Flashcard sets are made by hand (Quizlet-style editor with images), not generated from lesson imports.
 
 Progress, scores and the mistake bank are stored in each visitor's browser (localStorage), so classmates can use the site without accounts.
 

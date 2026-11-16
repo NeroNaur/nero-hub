@@ -1,14 +1,24 @@
 <script setup>
-import { inject, computed, ref } from 'vue'
+import { inject, computed, ref, watch } from 'vue'
 import { shuffle } from '@/lib/grade'
 import QuizRunner from '@/components/QuizRunner.vue'
 import EmptyContent from '@/components/EmptyContent.vue'
+import TermPicker from '@/components/TermPicker.vue'
+import { modulesInTerm, TERMS } from '@/lib/api'
+import { currentTerm } from '@/lib/term'
 
 const subject = inject('subject')
 const s = computed(() => subject.value)
 
-const withQs = computed(() => s.value.modules.filter((m) => m.questions.length))
+const term = computed(() => currentTerm(s.value))
+const termLabel = computed(() => TERMS.find((t) => t.key === term.value).label)
+const withQs = computed(() => modulesInTerm(s.value, term.value).filter((m) => m.questions.length))
 const picked = ref(withQs.value.map((m) => m.id))
+watch(withQs, (v) => {
+  picked.value = v.map((m) => m.id)
+  count.value = Math.min(50, pool.value.length)
+  minutes.value = Math.max(5, count.value)
+})
 const pool = computed(() => s.value.questions.filter((q) => picked.value.includes(q.module_id)))
 const count = ref(Math.min(50, pool.value.length))
 const minutes = ref(Math.max(5, Math.round(count.value * 1)))
@@ -29,7 +39,8 @@ function start() {
 </script>
 
 <template>
-  <EmptyContent v-if="!s.questions.length" what="questions" />
+  <TermPicker v-if="!running" :subject="s" />
+  <EmptyContent v-if="!withQs.length" what="questions in this term" />
 
   <div v-else-if="running" class="max-w-3xl mx-auto">
     <QuizRunner
@@ -38,6 +49,7 @@ function start() {
       :questions="running.questions"
       mode="deferred"
       kind="exam"
+      :term="term"
       :time-limit="minutes * 60"
       @restart="running = null"
       @exit="running = null"
@@ -46,7 +58,7 @@ function start() {
 
   <div v-else class="max-w-xl mx-auto rounded-2xl border border-line bg-panel p-6 sm:p-8 space-y-6">
     <div>
-      <h2 class="font-display text-2xl font-bold">Mock Exam</h2>
+      <h2 class="font-display text-2xl font-bold">{{ termLabel }} Mock Exam</h2>
       <p class="text-sm text-muted mt-1">Timed, randomized, graded at the end. Auto-submits when time runs out.</p>
     </div>
 

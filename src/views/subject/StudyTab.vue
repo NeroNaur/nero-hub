@@ -4,16 +4,20 @@ import { useRoute, useRouter } from 'vue-router'
 import { renderMarkdown } from '@/lib/markdown'
 import { progress } from '@/lib/progress'
 import EmptyContent from '@/components/EmptyContent.vue'
+import TermPicker from '@/components/TermPicker.vue'
+import { modulesInTerm } from '@/lib/api'
+import { currentTerm } from '@/lib/term'
 
 const subject = inject('subject')
 const route = useRoute()
 const router = useRouter()
 const s = computed(() => subject.value)
+const mods = computed(() => modulesInTerm(s.value, currentTerm(s.value)))
 
 const current = computed(
-  () => s.value.modules.find((m) => m.slug === route.params.module) || s.value.modules[0],
+  () => mods.value.find((m) => m.slug === route.params.module) || mods.value[0],
 )
-const idx = computed(() => s.value.modules.indexOf(current.value))
+const idx = computed(() => mods.value.indexOf(current.value))
 const html = computed(() =>
   (current.value?.reviews || [])
     .map((r) => (r.title ? `# ${r.title}\n\n` : '') + r.content)
@@ -27,14 +31,15 @@ const go = (m) => router.replace({ name: 'study', params: { subject: s.value.slu
 </script>
 
 <template>
-  <EmptyContent v-if="!s.modules.length" what="notes" />
+  <TermPicker :subject="s" />
+  <EmptyContent v-if="!mods.length" what="lessons in this term" />
   <div v-else class="grid gap-8 lg:grid-cols-[220px_1fr]">
     <aside class="lg:sticky lg:top-20 self-start">
-      <select class="lg:hidden w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm" :value="current.slug" @change="go(s.modules.find((m) => m.slug === $event.target.value))">
-        <option v-for="m in s.modules" :key="m.id" :value="m.slug">{{ m.title }}</option>
+      <select class="lg:hidden w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm" :value="current.slug" @change="go(mods.find((m) => m.slug === $event.target.value))">
+        <option v-for="m in mods" :key="m.id" :value="m.slug">{{ m.title }}</option>
       </select>
       <ol class="hidden lg:block space-y-1">
-        <li v-for="(m, i) in s.modules" :key="m.id">
+        <li v-for="(m, i) in mods" :key="m.id">
           <button
             class="w-full text-left rounded-lg px-3 py-2 text-sm transition"
             :class="m.id === current.id ? 'bg-white/10 text-white' : 'text-muted hover:text-white'"
@@ -52,9 +57,9 @@ const go = (m) => router.replace({ name: 'study', params: { subject: s.value.slu
       <div v-for="(h, i) in html" :key="i" class="prose-nh mb-10" v-html="h" />
 
       <div class="flex justify-between border-t border-line pt-6 mt-6 text-sm">
-        <button v-if="idx > 0" class="text-muted hover:text-white" @click="go(s.modules[idx - 1])">← {{ s.modules[idx - 1].title }}</button>
+        <button v-if="idx > 0" class="text-muted hover:text-white" @click="go(mods[idx - 1])">← {{ mods[idx - 1].title }}</button>
         <span v-else />
-        <button v-if="idx < s.modules.length - 1" class="text-muted hover:text-white" @click="go(s.modules[idx + 1])">{{ s.modules[idx + 1].title }} →</button>
+        <button v-if="idx < mods.length - 1" class="text-muted hover:text-white" @click="go(mods[idx + 1])">{{ mods[idx + 1].title }} →</button>
       </div>
     </article>
   </div>

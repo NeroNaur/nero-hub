@@ -10,6 +10,7 @@ const props = defineProps({
   mode: { type: String, default: 'instant' }, // 'instant' = feedback each question, 'deferred' = graded at the end
   kind: { type: String, default: 'practice' }, // practice | quiz | exam | review
   timeLimit: { type: Number, default: 0 }, // seconds; 0 = untimed
+  term: { type: String, default: null },
 })
 const emit = defineEmits(['restart', 'exit'])
 
@@ -80,6 +81,7 @@ function finish(force = false) {
   attempt.value = recordAttempt({
     subject: props.subject.slug,
     kind: props.kind,
+    term: props.term,
     modules: [...new Set(list.value.map((x) => x.module_id))],
     score: score.value,
     total: list.value.length,

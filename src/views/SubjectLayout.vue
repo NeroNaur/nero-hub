@@ -9,6 +9,10 @@ import LoadState from '@/components/LoadState.vue'
 const route = useRoute()
 const { data: subject, loading, error } = useAsync(() => getSubjectFull(route.params.subject))
 provide('subject', subject)
+// Re-fetch after edits without showing the loading screen.
+provide('reloadSubject', async () => {
+  subject.value = await getSubjectFull(route.params.subject, { fresh: true })
+})
 
 const tabs = [
   { name: 'hallway', label: 'Hallway', icon: 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z' },
@@ -20,7 +24,7 @@ const tabs = [
   { name: 'progress', label: 'Progress', icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
   { name: 'focus', label: 'Focus', icon: 'M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M12 12h.01' },
 ]
-const current = computed(() => route.name)
+const current = computed(() => String(route.name).split('-')[0])
 </script>
 
 <template>
