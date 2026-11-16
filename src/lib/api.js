@@ -116,3 +116,30 @@ export async function importModule(subjectId, mod, { replace = true } = {}) {
 export async function deleteModule(moduleId) {
   check(await supabase.from('modules').delete().eq('id', moduleId), 'module')
 }
+
+// ---------- Admin editor ----------
+export async function getModuleAdmin(id) {
+  const m = check(
+    await supabase
+      .from('modules')
+      .select('id, slug, title, summary, sort_order, reviews(id, title, content, sort_order), questions(id, type, prompt, choices, answer, explanation, created_at), flashcards(id, front, back, sort_order)')
+      .eq('id', id)
+      .single(),
+    'module',
+  )
+  const bySort = (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+  m.reviews.sort(bySort)
+  m.flashcards.sort(bySort)
+  m.questions.sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))
+  return m
+}
+
+export async function updateRow(table, id, patch) {
+  return check(await supabase.from(table).update(patch).eq('id', id).select().single(), table)
+}
+export async function insertRow(table, row) {
+  return check(await supabase.from(table).insert(row).select().single(), table)
+}
+export async function deleteRow(table, id) {
+  check(await supabase.from(table).delete().eq('id', id), table)
+}

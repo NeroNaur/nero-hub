@@ -13,6 +13,7 @@ const s = computed(() => subject.value)
 const moduleSlug = ref(route.query.m || '')
 const mode = ref('practice') // practice | quiz
 const quizSize = ref(15)
+const practiceSize = ref(null) // empty = all
 const running = ref(null) // { questions, key }
 
 const pool = computed(() => {
@@ -23,7 +24,7 @@ const pool = computed(() => {
 function start() {
   const qs = shuffle(pool.value)
   running.value = {
-    questions: mode.value === 'quiz' ? qs.slice(0, quizSize.value) : qs,
+    questions: qs.slice(0, mode.value === 'quiz' ? quizSize.value : practiceSize.value || qs.length),
     key: Date.now(),
   }
 }
@@ -70,9 +71,30 @@ function start() {
       </div>
     </div>
 
-    <div v-if="mode === 'quiz'">
-      <p class="font-mono text-xs text-muted mb-2">QUESTIONS</p>
-      <input v-model.number="quizSize" type="number" min="1" :max="pool.length" class="w-24 rounded-lg border border-line bg-ink px-3 py-2 text-sm" />
+    <div>
+      <p class="font-mono text-xs text-muted mb-2">HOW MANY QUESTIONS</p>
+      <div class="flex flex-wrap items-center gap-2">
+        <template v-if="mode === 'practice'">
+          <button
+            v-for="n in [null, 10, 20, 30]"
+            :key="n"
+            class="rounded-lg border px-3 py-2 text-sm transition"
+            :class="(n === null ? !practiceSize : practiceSize === n) ? 'border-white bg-white/5' : 'border-line hover:border-white/30 disabled:opacity-30 disabled:hover:border-line'"
+            :disabled="n > pool.length"
+            @click="practiceSize = n"
+          >{{ n === null ? `All (${pool.length})` : n }}</button>
+          <input
+            v-model.number="practiceSize"
+            type="number"
+            min="1"
+            :max="pool.length"
+            placeholder="Custom"
+            class="w-24 rounded-lg border border-line bg-ink px-3 py-2 text-sm"
+          />
+        </template>
+        <input v-else v-model.number="quizSize" type="number" min="1" :max="pool.length" class="w-24 rounded-lg border border-line bg-ink px-3 py-2 text-sm" />
+        <span class="font-mono text-xs text-muted">of {{ pool.length }}</span>
+      </div>
     </div>
 
     <button

@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { user, signIn, signOut } from '@/lib/auth'
 import { listSubjectsWithModules, importModule, deleteModule, clearCache } from '@/lib/api'
 import { parseImport, slugify } from '@/lib/importFormat'
+import ModuleEditor from '@/components/ModuleEditor.vue'
 
 const mock = import.meta.env.VITE_MOCK === '1'
 
@@ -113,6 +114,11 @@ async function saveNotes() {
 }
 
 // ---- manage ----
+const editing = ref(null) // { subject, moduleId }
+async function closeEditor() {
+  editing.value = null
+  await loadSubjects()
+}
 async function remove(subj, m) {
   if (!confirm(`Delete "${m.title}" from ${subj.name}? This removes its notes, questions and flashcards.`)) return
   try {
@@ -172,7 +178,7 @@ const example = `{
           :key="t.k"
           class="px-4 py-2 -mb-px border-b-2 text-sm"
           :class="tab === t.k ? 'border-accent text-white' : 'border-transparent text-muted hover:text-white'"
-          @click="tab = t.k; log = []"
+          @click="tab = t.k; log = []; editing = null"
         >{{ t.l }}</button>
       </div>
 
@@ -240,6 +246,7 @@ const example = `{
       </section>
 
       <!-- Manage -->
+      <ModuleEditor v-else-if="editing" :module-id="editing.moduleId" :subject="editing.subject" @back="closeEditor" />
       <section v-else class="space-y-6">
         <div v-for="s in subjects" :key="s.id">
           <p class="font-semibold mb-2">{{ s.name }}</p>
@@ -247,6 +254,7 @@ const example = `{
           <div v-for="m in s.modules" :key="m.id" class="flex items-center gap-3 border-t border-line py-2 text-sm">
             <span class="font-mono text-xs text-muted w-6">{{ m.sort_order }}</span>
             <span class="flex-1">{{ m.title }}</span>
+            <button class="text-xs text-accent hover:underline" @click="editing = { subject: s, moduleId: m.id }">Edit</button>
             <button class="text-xs text-red-300 hover:underline" @click="remove(s, m)">Delete</button>
           </div>
         </div>
