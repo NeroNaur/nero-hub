@@ -23,7 +23,10 @@ async function refresh() {
   await reloadSubject()
 }
 async function remove(m) {
-  if (!confirm(`Delete "${m.title}"? Its notes and questions will be removed.`)) return
+  const files = (m.materials || []).filter((x) => x.storage_path)
+  const mb = files.reduce((n, x) => n + (x.size_bytes || 0), 0) / 1048576
+  const extra = files.length ? `\n\nThis also deletes ${files.length} uploaded file${files.length === 1 ? '' : 's'} (${mb.toFixed(1)} MB).` : ''
+  if (!confirm(`Delete "${m.title}"? Its notes, questions and materials will be removed.${extra}`)) return
   try {
     await deleteModule(m.id)
     await refresh()

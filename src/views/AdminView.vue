@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 import { user, signIn, signOut } from '@/lib/auth'
 import { editMode } from '@/lib/editMode'
-import { listSubjectsAdmin, saveSubject, deleteSubject, clearCache } from '@/lib/api'
+import { listSubjectsAdmin, saveSubject, deleteSubject, subjectFileStats, clearCache } from '@/lib/api'
 import { slugify } from '@/lib/importFormat'
 
 const mock = import.meta.env.VITE_MOCK === '1'
@@ -73,8 +73,10 @@ async function save(s) {
 async function remove(s, i) {
   if (!s.id) return subjects.value.splice(i, 1)
   const n = s.modules?.[0]?.count || 0
+  const f = await subjectFileStats(s.id)
+  const files = f.count ? ` and ${f.count} uploaded file${f.count === 1 ? '' : 's'} (${(f.bytes / 1048576).toFixed(1)} MB)` : ''
   const typed = prompt(
-    `Delete "${s.name}"?\n\nThis permanently deletes its ${n} lesson(s), all questions, notes and flashcard sets.\n\nType the subject name to confirm:`,
+    `Delete "${s.name}"?\n\nThis permanently deletes its ${n} lesson(s), all questions, notes, flashcard sets${files}.\n\nType the subject name to confirm:`,
   )
   if (typed?.trim() !== s.name) return
   try {

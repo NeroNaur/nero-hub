@@ -140,8 +140,38 @@ export async function importModule(subjectId, mod, { replace = true } = {}) {
   return id
 }
 
+// Deleting a lesson also deletes its uploaded files from storage (otherwise they'd sit there using space).
 export async function deleteModule(moduleId) {
+  await removeMaterialFiles([moduleId])
   check(await supabase.from('modules').delete().eq('id', moduleId), 'module')
+}
+
+async function materialRows(moduleIds) {
+  if (!moduleIds.length) return []
+  const res = await supabase.from('materials').select('storage_path, size_bytes').in('module_id', moduleIds)
+  return res.error ? [] : res.data.filter((r) => r.storage_path) // table missing → nothing to clean
+}
+async function removeMaterialFiles(moduleIds) {
+  const paths = (await materialRows(moduleIds)).map((r) => r.storage_path)
+  for (let i = 0; i < paths.length; i += 900) {
+    const { error } = await supabase.storage.from('materials').remove(paths.slice(i, i + 900))
+    if (error) throw new Error(`Couldn't delete stored files: ${error.message}`)
+  }
+}
+// Card images are stored as public URLs; turn them back into storage paths.
+const cardImagePath = (url) => (url ? decodeURIComponent(String(url).split('/flashcard-images/')[1] || '') || null : null)
+async function removeCardImages(setIds) {
+  if (!setIds.length) return
+  const res = await supabase.from('flashcards').select('front_image, back_image').in('set_id', setIds)
+  if (res.error) return
+  const paths = res.data.flatMap((c) => [cardImagePath(c.front_image), cardImagePath(c.back_image)]).filter(Boolean)
+  if (paths.length) await supabase.storage.from('flashcard-images').remove(paths)
+}
+
+export async function subjectFileStats(subjectId) {
+  const mods = await supabase.from('modules').select('id').eq('subject_id', subjectId)
+  const rows = await materialRows((mods.data || []).map((m) => m.id))
+  return { count: rows.length, bytes: rows.reduce((n, r) => n + (r.size_bytes || 0), 0) }
 }
 
 // ---------- Admin editor ----------
@@ -212,6 +242,7 @@ export async function saveFlashcardSet(set, cards) {
 }
 
 export async function deleteFlashcardSet(id) {
+  await removeCardImages([id])
   check(await supabase.from('flashcard_sets').delete().eq('id', id), 'set')
 }
 
@@ -258,6 +289,10 @@ export async function saveSubject(sub) {
   return check(await supabase.from('subjects').insert(row).select().single(), 'subject')
 }
 export async function deleteSubject(id) {
+  const mods = await supabase.from('modules').select('id').eq('subject_id', id)
+  await removeMaterialFiles((mods.data || []).map((m) => m.id))
+  const sets = await supabase.from('flashcard_sets').select('id').eq('subject_id', id)
+  await removeCardImages((sets.data || []).map((x) => x.id))
   check(await supabase.from('subjects').delete().eq('id', id), 'subject')
 }
 

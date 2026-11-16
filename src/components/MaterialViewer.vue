@@ -1,13 +1,18 @@
 <script setup>
-import { computed, onMounted, onBeforeUnmount } from 'vue'
-import { kindOf, embedUrl, downloadUrl, fmtSize } from '@/lib/materials'
+import { computed, ref, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue'
+import { kindOf, embedUrl, downloadUrl, fmtSize, fileType, usePdfViewer } from '@/lib/materials'
+
+// Loaded only when a PDF is opened (keeps the rest of the site light).
+const PdfViewer = defineAsyncComponent(() => import('./PdfViewer.vue'))
 
 const props = defineProps({ material: Object, lesson: String })
 const emit = defineEmits(['close'])
 const k = computed(() => kindOf(props.material.kind))
 const src = computed(() => embedUrl(props.material))
 const dl = computed(() => downloadUrl(props.material))
-const officeNote = computed(() => props.material.storage_path && ['docs', 'slides'].includes(props.material.kind))
+const officeNote = computed(() => props.material.storage_path && ['docs', 'slides'].includes(fileType(props.material)))
+const pdfFailed = ref(false)
+const showPdf = computed(() => usePdfViewer(props.material) && !pdfFailed.value)
 
 const onKey = (e) => e.key === 'Escape' && emit('close')
 onMounted(() => {
@@ -33,8 +38,9 @@ onBeforeUnmount(() => {
       <button class="grid size-9 place-items-center rounded-full bg-white/10 hover:bg-white/20" title="Close (Esc)" @click="emit('close')">✕</button>
     </div>
 
+    <PdfViewer v-if="showPdf" :url="material.url" @fallback="pdfFailed = true" />
     <iframe
-      v-if="src"
+      v-else-if="src"
       :src="src"
       class="w-full flex-1 bg-white"
       allow="autoplay; encrypted-media; fullscreen; picture-in-picture"

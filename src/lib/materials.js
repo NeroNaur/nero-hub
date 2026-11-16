@@ -31,6 +31,18 @@ export function kindFromUrl(url) {
   return 'link'
 }
 
+// The real file type, from the file name / URL (labels are only for display and filters).
+export function fileType(m) {
+  const name = String(m.file_name || m.storage_path || m.url || '').toLowerCase().split('?')[0]
+  if (name.endsWith('.pdf')) return 'pdf'
+  if (/\.(docx?|odt|rtf)$/.test(name)) return 'docs'
+  if (/\.(pptx?|odp)$/.test(name)) return 'slides'
+  return null
+}
+
+// PDFs we draw ourselves with PDF.js (stays on the site, works on phones).
+export const usePdfViewer = (m) => fileType(m) === 'pdf'
+
 // What to put in the on-site viewer (iframe src), or null = open in a new tab.
 export function embedUrl(m) {
   const yt = youtubeId(m.url)
@@ -39,11 +51,10 @@ export function embedUrl(m) {
   if (d) return `https://drive.google.com/file/d/${d}/preview`
   const g = gdoc(m.url)
   if (g) return `https://docs.google.com/${g[1]}/d/${g[2]}/preview`
-  if (m.storage_path) {
-    if (m.kind === 'pdf') return m.url
-    if (m.kind === 'docs' || m.kind === 'slides') return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(m.url)}`
-  }
-  if (m.kind === 'pdf' && /\.pdf($|\?)/i.test(m.url)) return m.url
+  const t = fileType(m)
+  if (t === 'pdf') return m.url
+  if (m.storage_path && (t === 'docs' || t === 'slides'))
+    return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(m.url)}`
   return null
 }
 
