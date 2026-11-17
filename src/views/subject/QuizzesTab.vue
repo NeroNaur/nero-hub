@@ -61,7 +61,7 @@ const to = (name, z) => ({ name, params: { subject: s.value.slug, quiz: z.id } }
     <div v-for="z in quizzes" :key="z.id" class="rounded-xl border border-line bg-panel p-5 sm:flex sm:items-center sm:gap-5">
       <div class="min-w-0 flex-1">
         <p class="font-mono text-xs text-muted">
-          <template v-if="z.quiz_date">{{ fmtDate(z.quiz_date) }} · </template>{{ z.questions.length }} items
+          <template v-if="z.quiz_date">{{ fmtDate(z.quiz_date) }} · </template>{{ z.questions.length }} item{{ z.questions.length === 1 ? '' : 's' }}
           <template v-if="z.time_limit_min"> · {{ z.time_limit_min }} min</template>
         </p>
         <p class="mt-0.5 font-display text-lg font-bold">{{ z.title }}</p>

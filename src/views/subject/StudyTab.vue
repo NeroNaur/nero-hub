@@ -1,16 +1,24 @@
 <script setup>
 import { inject, computed, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { renderMarkdown } from '@/lib/markdown'
 import { progress } from '@/lib/progress'
 import EmptyContent from '@/components/EmptyContent.vue'
 import MaterialsList from '@/components/MaterialsList.vue'
+import NotesEditable from '@/components/NotesEditable.vue'
+import QuestionsEditor from '@/components/QuestionsEditor.vue'
+import { clearCache } from '@/lib/api'
 import { canEdit } from '@/lib/editMode'
 import TermPicker from '@/components/TermPicker.vue'
 import { modulesInTerm } from '@/lib/api'
 import { currentTerm } from '@/lib/term'
 
 const subject = inject('subject')
+const reloadSubject = inject('reloadSubject')
+const showError = (m) => window.alert(m)
+async function onQuestionsChanged() {
+  clearCache(s.value.slug)
+  await reloadSubject()
+}
 const route = useRoute()
 const router = useRouter()
 const s = computed(() => subject.value)
@@ -20,11 +28,6 @@ const current = computed(
   () => mods.value.find((m) => m.slug === route.params.module) || mods.value[0],
 )
 const idx = computed(() => mods.value.indexOf(current.value))
-const html = computed(() =>
-  (current.value?.reviews || [])
-    .map((r) => (r.title ? `# ${r.title}\n\n` : '') + r.content)
-    .map(renderMarkdown),
-)
 
 watchEffect(() => {
   if (current.value) progress.last[s.value.slug] = { module: current.value.slug }
@@ -59,8 +62,21 @@ const go = (m) => router.replace({ name: 'study', params: { subject: s.value.slu
         <p class="mb-3 font-mono text-xs text-muted">📎 MATERIALS</p>
         <MaterialsList :subject="s" :module="current" />
       </section>
-      <EmptyContent v-if="!html.length" what="notes for this module" />
-      <div v-for="(h, i) in html" :key="i" class="prose-nh mb-10" v-html="h" />
+      <NotesEditable :key="current.id" :subject="s" :module="current" />
+
+      <section v-if="canEdit" class="mt-10 rounded-2xl border border-dashed border-accent/50 p-4">
+        <p class="mb-1 font-mono text-xs text-accent">✏️ QUESTIONS FOR THIS LESSON ({{ current.questions.length }})</p>
+        <p class="mb-3 text-xs text-muted">Only visible in Edit mode. These feed Practice, Mock Quiz and the mistake bank.</p>
+        <QuestionsEditor
+          :key="current.id"
+          table="questions"
+          parent-key="module_id"
+          :parent-id="current.id"
+          :initial="current.questions"
+          @changed="onQuestionsChanged"
+          @error="showError"
+        />
+      </section>
 
       <div class="flex justify-between border-t border-line pt-6 mt-6 text-sm">
         <button v-if="idx > 0" class="text-muted hover:text-white" @click="go(mods[idx - 1])">← {{ mods[idx - 1].title }}</button>

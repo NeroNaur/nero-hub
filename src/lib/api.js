@@ -58,8 +58,15 @@ export async function getSubjectFull(slug, { fresh = false } = {}) {
       }
     }
     subject = unwrap(res)
+    if (subject) {
+      // settings column comes from 006; missing column → defaults
+      const st = await supabase.from('subjects').select('settings').eq('id', subject.id).maybeSingle()
+      subject.settings = st.error ? {} : st.data?.settings || {}
+      if (st.error) subject.needsSettings = true
+    }
   }
   if (!subject) return null
+  subject.settings ||= {}
 
   const bySort = (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || String(a.created_at).localeCompare(String(b.created_at))
   subject.modules.sort(bySort)
@@ -375,4 +382,10 @@ export async function importQuiz(qz) {
 }
 export async function deleteQuiz(id) {
   check(await supabase.from('quizzes').delete().eq('id', id), 'quiz')
+}
+
+export async function saveSubjectSettings(subjectId, settings) {
+  const res = await supabase.from('subjects').update({ settings }).eq('id', subjectId)
+  if (res.error && /settings/.test(res.error.message)) throw new Error('Run supabase/006_subject_settings.sql first.')
+  check(res, 'settings')
 }

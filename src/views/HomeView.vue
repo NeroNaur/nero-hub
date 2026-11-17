@@ -31,7 +31,7 @@ const mistakes = (slug) => progress.mistakes[slug]?.length || 0
         <p class="font-mono text-xs" :style="{ color: z.subject?.color }">{{ z.subject?.code || z.subject?.name }}</p>
         <p class="mt-0.5 line-clamp-2 font-semibold leading-snug">{{ z.title }}</p>
         <p class="mt-1 font-mono text-xs text-muted">
-          <template v-if="z.quiz_date">{{ fmtDate(z.quiz_date) }} · </template>{{ z.quiz_questions?.[0]?.count ?? 0 }} items
+          <template v-if="z.quiz_date">{{ fmtDate(z.quiz_date) }} · </template>{{ z.quiz_questions?.[0]?.count ?? 0 }} item{{ (z.quiz_questions?.[0]?.count ?? 0) === 1 ? '' : 's' }}
           <template v-if="quizScores(z.id)"> · best {{ quizScores(z.id).best }}%</template>
         </p>
         <div class="mt-3 flex gap-2">

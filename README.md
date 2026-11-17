@@ -16,6 +16,7 @@ Vue 3 + Vite + Tailwind, Supabase for data, deployed on Vercel.
 Then run `supabase/003_terms_flashcard_sets.sql` (terms, flashcard sets, image storage). `002` is optional/superseded.
 Then `supabase/004_lesson_materials.sql` (lesson PDFs/docs/slides/video links + file storage).
 Then `supabase/005_quizzes.sql` (class quizzes to retake / review).
+Then `supabase/006_subject_settings.sql` (per-subject Hallway show/hide).
 
 ## Each subject has
 Hallway · Study · Materials · Flashcards · Practice (incl. Mock Quiz) · Quizzes (from class) · Mock Exam · Review (mistake bank) · Progress
