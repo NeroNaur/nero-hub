@@ -11,8 +11,10 @@ const props = defineProps({
   kind: { type: String, default: 'practice' }, // practice | quiz | exam | review
   timeLimit: { type: Number, default: 0 }, // seconds; 0 = untimed
   term: { type: String, default: null },
+  quizId: { type: String, default: null }, // class quiz being retaken
 })
 const emit = defineEmits(['restart', 'exit'])
+const kindLabel = { practice: 'Practice', quiz: 'Mock quiz', exam: 'Mock exam', review: 'Review', 'class-quiz': 'Quiz' }
 
 const list = ref([...props.questions])
 const index = ref(0)
@@ -82,6 +84,7 @@ function finish(force = false) {
     subject: props.subject.slug,
     kind: props.kind,
     term: props.term,
+    quiz_id: props.quizId,
     modules: [...new Set(list.value.map((x) => x.module_id))],
     score: score.value,
     total: list.value.length,
@@ -154,7 +157,7 @@ onBeforeUnmount(() => {
   <!-- ===== Results ===== -->
   <div v-if="finished" class="space-y-6">
     <div class="rounded-2xl border border-line bg-panel p-6 sm:p-8 text-center">
-      <p class="font-mono text-xs text-muted uppercase">{{ kind }} result</p>
+      <p class="font-mono text-xs text-muted uppercase">{{ kindLabel[kind] || kind }} result</p>
       <p class="font-display text-6xl font-bold mt-2" :style="{ color: subject.color }">
         {{ Math.round((score / list.length) * 100) }}%
       </p>

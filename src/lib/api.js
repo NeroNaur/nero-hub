@@ -21,6 +21,8 @@ export async function listSubjects() {
 
 const MODULE_FIELDS =
   'id, slug, title, summary, term, sort_order, reviews(id, title, content, sort_order), questions(id, type, prompt, choices, answer, explanation, difficulty)'
+const QUIZ_FIELDS =
+  'id, term, title, quiz_date, note, time_limit_min, module_ids, sort_order, created_at, quiz_questions(id, type, prompt, choices, answer, explanation, sort_order, created_at)'
 const SET_FIELDS =
   'id, term, module_id, title, description, sort_order, created_at, flashcards(id, front, back, front_image, back_image, sort_order)'
 
@@ -39,28 +41,21 @@ export async function getSubjectFull(slug, { fresh = false } = {}) {
   } else {
     const head = 'id, slug, code, name, term, color'
     const MAT = ', materials(id, kind, title, url, storage_path, file_name, size_bytes, sort_order, created_at)'
-    let res = await supabase
-      .from('subjects')
-      .select(`${head}, modules(${MODULE_FIELDS}${MAT}), flashcard_sets(${SET_FIELDS})`)
-      .eq('slug', slug)
-      .maybeSingle()
-    if (res.error) {
-      // 004 (materials) not run yet
-      res = await supabase
-        .from('subjects')
-        .select(`${head}, modules(${MODULE_FIELDS}), flashcard_sets(${SET_FIELDS})`)
-        .eq('slug', slug)
-        .maybeSingle()
-      if (res.data) res.data.needsMaterials = true
-    }
-    if (res.error) {
-      // 003 migration not run yet → load without terms/sets
-      res = await supabase
-        .from('subjects')
-        .select(`${head}, modules(${MODULE_FIELDS.replace(' term,', '')})`)
-        .eq('slug', slug)
-        .maybeSingle()
-      if (res.data) res.data.needsMigration = true
+    const QUIZ = `, quizzes(${QUIZ_FIELDS})`
+    // Newest first; each step drops one feature whose SQL file may not have been run yet.
+    const variants = [
+      { sel: `${head}, modules(${MODULE_FIELDS}${MAT}), flashcard_sets(${SET_FIELDS})${QUIZ}`, flags: {} },
+      { sel: `${head}, modules(${MODULE_FIELDS}${MAT}), flashcard_sets(${SET_FIELDS})`, flags: { needsQuizzes: true } },
+      { sel: `${head}, modules(${MODULE_FIELDS}), flashcard_sets(${SET_FIELDS})`, flags: { needsQuizzes: true, needsMaterials: true } },
+      { sel: `${head}, modules(${MODULE_FIELDS.replace(' term,', '')})`, flags: { needsQuizzes: true, needsMaterials: true, needsMigration: true } },
+    ]
+    let res
+    for (const v of variants) {
+      res = await supabase.from('subjects').select(v.sel).eq('slug', slug).maybeSingle()
+      if (!res.error) {
+        if (res.data) Object.assign(res.data, v.flags)
+        break
+      }
     }
     subject = unwrap(res)
   }
@@ -76,7 +71,17 @@ export async function getSubjectFull(slug, { fresh = false } = {}) {
   subject.sets = (subject.flashcard_sets || []).sort(bySort)
   delete subject.flashcard_sets
   for (const st of subject.sets) st.flashcards = (st.flashcards || []).sort(bySort)
+  subject.quizzes = (subject.quizzes || [])
+    .map((qz) => ({
+      ...qz,
+      module_ids: qz.module_ids || [],
+      questions: (qz.quiz_questions || []).sort(bySort).map((q) => ({ ...q, quiz_id: qz.id })),
+    }))
+    .sort((a, b) => String(b.quiz_date || '').localeCompare(String(a.quiz_date || '')) || bySort(a, b))
+  for (const qz of subject.quizzes) delete qz.quiz_questions
   subject.questions = subject.modules.flatMap((m) => m.questions)
+  // every question incl. class quizzes (used by the Review mistake bank)
+  subject.allQuestions = [...subject.questions, ...subject.quizzes.flatMap((qz) => qz.questions)]
   subject.flashcards = subject.sets.flatMap((st) => st.flashcards)
   subject.moduleById = Object.fromEntries(subject.modules.map((m) => [m.id, m]))
   cache.set(slug, subject)
@@ -85,6 +90,7 @@ export async function getSubjectFull(slug, { fresh = false } = {}) {
 
 export const modulesInTerm = (subject, term) => subject.modules.filter((m) => m.term === term)
 export const setsInTerm = (subject, term) => subject.sets.filter((s) => s.term === term)
+export const quizzesInTerm = (subject, term) => subject.quizzes.filter((q) => q.term === term)
 
 export function clearCache(slug) {
   slug ? cache.delete(slug) : cache.clear()
@@ -327,4 +333,46 @@ export async function updateMaterial(id, patch) {
 export async function deleteMaterial(m) {
   check(await supabase.from('materials').delete().eq('id', m.id), 'material')
   if (m.storage_path) await supabase.storage.from(MAT_BUCKET).remove([m.storage_path])
+}
+
+// ---------- Class quizzes ----------
+export async function listRecentQuizzes(limit = 6) {
+  if (MOCK) return []
+  const res = await supabase
+    .from('quizzes')
+    .select('id, title, quiz_date, term, created_at, subject:subjects(slug, name, code, color), quiz_questions(count)')
+    .order('quiz_date', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  return res.error ? [] : res.data // table not created yet → just show nothing
+}
+
+const quizRow = (qz) => ({
+  subject_id: qz.subject_id,
+  term: qz.term,
+  title: qz.title.trim(),
+  quiz_date: qz.quiz_date || null,
+  note: qz.note?.trim() || null,
+  time_limit_min: Number(qz.time_limit_min) || null,
+  module_ids: qz.module_ids || [],
+  sort_order: qz.sort_order ?? 0,
+})
+export async function saveQuizMeta(qz) {
+  if (qz.id) {
+    check(await supabase.from('quizzes').update(quizRow(qz)).eq('id', qz.id), 'quiz')
+    return qz.id
+  }
+  return check(await supabase.from('quizzes').insert(quizRow(qz)).select('id').single(), 'quiz').id
+}
+export async function importQuiz(qz) {
+  const id = await saveQuizMeta(qz)
+  if (qz.questions.length)
+    check(
+      await supabase.from('quiz_questions').insert(qz.questions.map((q, i) => ({ ...q, quiz_id: id, sort_order: i + 1 }))),
+      'quiz questions',
+    )
+  return id
+}
+export async function deleteQuiz(id) {
+  check(await supabase.from('quizzes').delete().eq('id', id), 'quiz')
 }

@@ -24,7 +24,8 @@ const weakest = computed(() =>
     .sort((a, b) => b.st.w / (b.st.r + b.st.w) - a.st.w / (a.st.r + a.st.w) || b.st.w - a.st.w)
     .slice(0, 5),
 )
-const kindLabel = { practice: 'Practice', quiz: 'Mock Quiz', exam: 'Mock Exam', review: 'Review' }
+const kindLabel = { practice: 'Practice', quiz: 'Mock Quiz', exam: 'Mock Exam', review: 'Review', 'class-quiz': 'Quiz' }
+const quizTitle = (a) => s.value.quizzes.find((z) => z.id === a.quiz_id)?.title
 const fmtDate = (t) => new Date(t).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 const fmtDur = (s) => (s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`)
 const pct = (a) => Math.round((a.score / a.total) * 100)
@@ -103,7 +104,7 @@ function reset() {
     <table v-else class="w-full text-sm">
       <tbody>
         <tr v-for="a in attempts.slice(0, 30)" :key="a.at" class="border-t border-line">
-          <td class="py-2">{{ kindLabel[a.kind] }}</td>
+          <td class="py-2">{{ kindLabel[a.kind] }}<span v-if="a.kind === 'class-quiz' && quizTitle(a)" class="text-muted">: {{ quizTitle(a) }}</span></td>
           <td class="py-2 font-mono">{{ a.score }}/{{ a.total }} <span class="text-muted">({{ pct(a) }}%)</span></td>
           <td class="py-2 font-mono text-muted hidden sm:table-cell">{{ fmtDur(a.duration) }}</td>
           <td class="py-2 text-right text-muted">{{ fmtDate(a.at) }}</td>

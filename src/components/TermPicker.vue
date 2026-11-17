@@ -1,11 +1,12 @@
 <script setup>
 import { computed } from 'vue'
-import { TERMS, modulesInTerm, setsInTerm } from '@/lib/api'
+import { TERMS, modulesInTerm, setsInTerm, quizzesInTerm } from '@/lib/api'
 import { currentTerm, setTerm } from '@/lib/term'
 
-const props = defineProps({ subject: Object, count: { type: String, default: 'modules' } }) // modules | sets
+const props = defineProps({ subject: Object, count: { type: String, default: 'modules' } }) // modules | sets | quizzes
 const term = computed(() => currentTerm(props.subject))
-const n = (t) => (props.count === 'sets' ? setsInTerm(props.subject, t).length : modulesInTerm(props.subject, t).length)
+const n = (t) =>
+  (props.count === 'sets' ? setsInTerm : props.count === 'quizzes' ? quizzesInTerm : modulesInTerm)(props.subject, t).length
 </script>
 
 <template>

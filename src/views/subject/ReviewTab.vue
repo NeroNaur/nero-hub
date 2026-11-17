@@ -7,7 +7,8 @@ import QuizRunner from '@/components/QuizRunner.vue'
 const subject = inject('subject')
 const s = computed(() => subject.value)
 const ids = computed(() => progress.mistakes[s.value.slug] || [])
-const items = computed(() => s.value.questions.filter((q) => ids.value.includes(q.id)))
+const items = computed(() => s.value.allQuestions.filter((q) => ids.value.includes(q.id)))
+const sourceOf = (q) => (q.quiz_id ? s.value.quizzes.find((z) => z.id === q.quiz_id)?.title : s.value.moduleById[q.module_id]?.title)
 const running = ref(null)
 
 function start() {
@@ -33,7 +34,7 @@ function clearAll() {
 
   <div v-else-if="!items.length" class="rounded-xl border border-dashed border-line p-10 text-center">
     <p class="font-display text-lg font-bold">Mistake bank is empty</p>
-    <p class="text-muted text-sm mt-2">Questions you miss in Practice, Mock Quiz or Mock Exam land here. Answer them right here to clear them.</p>
+    <p class="text-muted text-sm mt-2">Questions you miss in Practice, Mock Quiz, Quizzes or Mock Exam land here. Answer them right here to clear them.</p>
   </div>
 
   <div v-else>
@@ -49,7 +50,7 @@ function clearAll() {
     </div>
     <ul class="space-y-2">
       <li v-for="q in items" :key="q.id" class="rounded-xl border border-line bg-panel p-4">
-        <p class="font-mono text-xs text-muted">{{ s.moduleById[q.module_id]?.title }} · missed {{ progress.stats[q.id]?.w || 1 }}×</p>
+        <p class="font-mono text-xs text-muted">{{ sourceOf(q) }} · missed {{ progress.stats[q.id]?.w || 1 }}×</p>
         <p class="mt-1">{{ q.prompt }}</p>
         <details class="mt-2 text-sm">
           <summary class="cursor-pointer text-muted hover:text-white">Show answer</summary>

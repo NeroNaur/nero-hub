@@ -16,13 +16,17 @@ const routes = [
       { path: 'flashcards/:set', name: 'flashcards-set', component: sub('FlashcardSetStudy') },
       { path: 'flashcards/:set/edit', name: 'flashcards-edit', component: sub('FlashcardSetEdit') },
       { path: 'practice', name: 'practice', component: sub('PracticeTab') },
+      { path: 'quizzes', name: 'quizzes', component: sub('QuizzesTab') },
+      { path: 'quizzes/:quiz', name: 'quizzes-take', component: sub('QuizTake') },
+      { path: 'quizzes/:quiz/review', name: 'quizzes-review', component: sub('QuizReview') },
+      { path: 'quizzes/:quiz/edit', name: 'quizzes-edit', component: sub('QuizEdit') },
       { path: 'exam', name: 'exam', component: sub('ExamTab') },
       { path: 'review', name: 'review', component: sub('ReviewTab') },
       { path: 'progress', name: 'progress', component: sub('ProgressTab') },
-      { path: 'focus', name: 'focus', component: sub('FocusTab') },
     ],
   },
   { path: '/admin', name: 'admin', component: () => import('@/views/AdminView.vue') },
+  { path: '/s/:subject/focus', redirect: (to) => `/s/${to.params.subject}` }, // old link
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFoundView.vue') },
 ]
 

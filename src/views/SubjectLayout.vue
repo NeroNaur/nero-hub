@@ -21,10 +21,10 @@ const tabs = [
   { name: 'materials', label: 'Materials', icon: 'M21.4 11.1 12.2 20.3a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5' },
   { name: 'flashcards', label: 'Flashcards', icon: 'M7 3h10a2 2 0 0 1 2 2v12M5 7h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z' },
   { name: 'practice', label: 'Practice', icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0-5a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
+  { name: 'quizzes', label: 'Quizzes', icon: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9' },
   { name: 'exam', label: 'Mock Exam', icon: 'M12 8v5l3 2M9 2h6M12 22a8 8 0 1 0 0-16 8 8 0 0 0 0 16z' },
   { name: 'review', label: 'Review', icon: 'M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5' },
   { name: 'progress', label: 'Progress', icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
-  { name: 'focus', label: 'Focus', icon: 'M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M12 12h.01' },
 ]
 const current = computed(() => String(route.name).split('-')[0])
 </script>

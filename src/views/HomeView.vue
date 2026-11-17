@@ -1,10 +1,12 @@
 <script setup>
-import { listSubjects } from '@/lib/api'
+import { listSubjects, listRecentQuizzes } from '@/lib/api'
+import { quizScores, fmtDate } from '@/lib/quizzes'
 import { useAsync } from '@/lib/useAsync'
 import { progress } from '@/lib/progress'
 import LoadState from '@/components/LoadState.vue'
 
 const { data: subjects, loading, error } = useAsync(() => listSubjects())
+const { data: recent } = useAsync(() => listRecentQuizzes(6))
 const mistakes = (slug) => progress.mistakes[slug]?.length || 0
 </script>
 
@@ -12,6 +14,32 @@ const mistakes = (slug) => progress.mistakes[slug]?.length || 0
   <section class="mb-10">
     <p class="font-mono text-xs text-accent mb-2">DASHBOARD</p>
     <h1 class="font-display text-4xl font-bold tracking-tight">What are we reviewing today?</h1>
+  </section>
+
+  <section v-if="recent?.length" class="mb-10">
+    <div class="mb-3 flex items-baseline gap-3">
+      <h2 class="font-display text-xl font-bold">Recent quizzes</h2>
+      <span class="font-mono text-xs text-muted">retake or review answers</span>
+    </div>
+    <div class="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2">
+      <div
+        v-for="z in recent"
+        :key="z.id"
+        class="relative w-64 shrink-0 snap-start overflow-hidden rounded-xl border border-line bg-panel p-4"
+      >
+        <span class="absolute inset-y-0 left-0 w-1" :style="{ background: z.subject?.color }" />
+        <p class="font-mono text-xs" :style="{ color: z.subject?.color }">{{ z.subject?.code || z.subject?.name }}</p>
+        <p class="mt-0.5 line-clamp-2 font-semibold leading-snug">{{ z.title }}</p>
+        <p class="mt-1 font-mono text-xs text-muted">
+          <template v-if="z.quiz_date">{{ fmtDate(z.quiz_date) }} · </template>{{ z.quiz_questions?.[0]?.count ?? 0 }} items
+          <template v-if="quizScores(z.id)"> · best {{ quizScores(z.id).best }}%</template>
+        </p>
+        <div class="mt-3 flex gap-2">
+          <RouterLink :to="{ name: 'quizzes-take', params: { subject: z.subject.slug, quiz: z.id } }" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-ink" :style="{ background: z.subject?.color }">Retake</RouterLink>
+          <RouterLink :to="{ name: 'quizzes-review', params: { subject: z.subject.slug, quiz: z.id } }" class="rounded-lg border border-line px-3 py-1.5 text-xs hover:border-white/40">Answers</RouterLink>
+        </div>
+      </div>
+    </div>
   </section>
 
   <LoadState :loading="loading" :error="error">

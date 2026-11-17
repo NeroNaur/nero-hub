@@ -62,6 +62,18 @@ const sets = [
   { id: 'set2', subject_id: 's1', term: 'midterm', module_id: 'm2', title: 'Consensus terms', description: null, sort_order: 1, flashcards: [{ id: 'f4', front: 'Nonce', back: 'Number used once; miners vary it to find a valid hash.', sort_order: 1 }] },
 ]
 
+const quizzes = [
+  {
+    id: 'qz1', subject_id: 's1', term: 'prelim', title: 'Quiz 1: Hashing', quiz_date: '2026-11-14', note: '5 items', time_limit_min: 2,
+    module_ids: ['m1'], sort_order: 1, created_at: 'x',
+    quiz_questions: [
+      { id: 'zq1', type: 'mcq', prompt: 'SHA-256 output size?', choices: ['128 bits', '256 bits'], answer: '256 bits', explanation: null, sort_order: 1 },
+      { id: 'zq2', type: 'true_false', prompt: 'Hashes are deterministic.', answer: true, explanation: 'Same input, same output.', sort_order: 2 },
+      { id: 'zq3', type: 'identification', prompt: 'Small change → very different hash. Called the ______ effect.', answer: ['avalanche', 'avalanche effect'], explanation: null, sort_order: 3 },
+    ],
+  },
+]
+
 const clone = (x) => JSON.parse(JSON.stringify(x))
 
 export function mockSubjects() {
@@ -71,5 +83,5 @@ export function mockSubjects() {
 export function mockSubjectFull(slug) {
   const s = subjects.find((x) => x.slug === slug)
   if (!s) return null
-  return clone({ ...s, modules: modules.filter((m) => m.subject_id === s.id), flashcard_sets: sets.filter((x) => x.subject_id === s.id) })
+  return clone({ ...s, modules: modules.filter((m) => m.subject_id === s.id), flashcard_sets: sets.filter((x) => x.subject_id === s.id), quizzes: quizzes.filter((x) => x.subject_id === s.id) })
 }
