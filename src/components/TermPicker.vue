@@ -3,10 +3,14 @@ import { computed } from 'vue'
 import { TERMS, modulesInTerm, setsInTerm, quizzesInTerm } from '@/lib/api'
 import { currentTerm, setTerm } from '@/lib/term'
 
-const props = defineProps({ subject: Object, count: { type: String, default: 'modules' } }) // modules | sets | quizzes
+const props = defineProps({ subject: Object, count: { type: String, default: 'modules' } }) // modules | sets | quiz | mock_quiz | mock_exam
 const term = computed(() => currentTerm(props.subject))
 const n = (t) =>
-  (props.count === 'sets' ? setsInTerm : props.count === 'quizzes' ? quizzesInTerm : modulesInTerm)(props.subject, t).length
+  props.count === 'sets'
+    ? setsInTerm(props.subject, t).length
+    : ['quiz', 'mock_quiz', 'mock_exam'].includes(props.count)
+      ? quizzesInTerm(props.subject, t, props.count).length
+      : modulesInTerm(props.subject, t).length
 </script>
 
 <template>

@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { saveQuizMeta, clearCache, modulesInTerm, TERMS } from '@/lib/api'
 import { canEdit, editMode } from '@/lib/editMode'
 import QuestionsEditor from '@/components/QuestionsEditor.vue'
+import { kindInfo } from '@/lib/quizzes'
 
 const subject = inject('subject')
 const reloadSubject = inject('reloadSubject')
@@ -12,6 +13,7 @@ const s = computed(() => subject.value)
 const quiz = computed(() => s.value.quizzes.find((z) => z.id === route.params.quiz))
 
 const meta = reactive({ ...(quiz.value || {}), module_ids: [...(quiz.value?.module_ids || [])], _dirty: false })
+const k = computed(() => kindInfo(quiz.value?.kind))
 const termLessons = computed(() => modulesInTerm(s.value, meta.term))
 const flash = ref('')
 const error = ref('')
@@ -26,7 +28,7 @@ async function refresh() {
   await reloadSubject()
 }
 async function saveMeta() {
-  if (!meta.title?.trim()) return (error.value = 'Give the quiz a title.')
+  if (!meta.title?.trim()) return (error.value = 'Give it a title.')
   try {
     await saveQuizMeta({ ...meta, subject_id: s.value.id })
     meta._dirty = false
@@ -45,22 +47,22 @@ const input = 'w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm foc
 
 <template>
   <div v-if="!canEdit" class="rounded-xl border border-dashed border-accent/50 p-10 text-center">
-    <p class="text-muted">Turn on Edit mode to edit this quiz.</p>
+    <p class="text-muted">Turn on Edit mode to edit this.</p>
     <button class="mt-3 rounded-lg bg-accent px-4 py-2 font-semibold text-ink" @click="editMode.on = true">Turn on Edit mode</button>
   </div>
   <div v-else-if="!quiz" class="text-muted">Quiz not found.</div>
 
   <div v-else class="mx-auto max-w-3xl">
     <div class="mb-4 flex items-center gap-3">
-      <RouterLink :to="{ name: 'quizzes', params: { subject: s.slug } }" class="font-mono text-xs text-muted hover:text-white">← All quizzes</RouterLink>
+      <RouterLink :to="{ name: k.tab, params: { subject: s.slug } }" class="font-mono text-xs text-muted hover:text-white">← All {{ k.many }}</RouterLink>
       <RouterLink :to="{ name: 'quizzes-review', params: { subject: s.slug, quiz: quiz.id } }" class="ml-auto text-sm text-muted underline hover:text-white">Preview answer key</RouterLink>
     </div>
 
     <div class="mb-6 space-y-3 rounded-xl border bg-panel p-4" :class="meta._dirty ? 'border-amber-400/50' : 'border-line'" @input="meta._dirty = true">
-      <p class="font-mono text-xs text-muted">QUIZ DETAILS</p>
+      <p class="font-mono text-xs text-muted">{{ k.One.toUpperCase() }} DETAILS</p>
       <input v-model="meta.title" placeholder="Title" :class="input" class="font-semibold" />
       <div class="grid gap-3 sm:grid-cols-3">
-        <label class="text-xs text-muted">Date given<input v-model="meta.quiz_date" type="date" :class="input" class="mt-1" /></label>
+        <label class="text-xs text-muted">{{ meta.kind === 'quiz' ? 'Date given' : 'Date (optional)' }}<input v-model="meta.quiz_date" type="date" :class="input" class="mt-1" /></label>
         <label class="text-xs text-muted">Term
           <select v-model="meta.term" :class="input" class="mt-1" @change="meta.module_ids = []; meta._dirty = true">
             <option v-for="t in TERMS" :key="t.key" :value="t.key">{{ t.label }}</option>

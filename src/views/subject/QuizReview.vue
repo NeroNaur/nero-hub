@@ -2,12 +2,13 @@
 import { inject, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { formatAnswer } from '@/lib/grade'
-import { fmtDate } from '@/lib/quizzes'
+import { fmtDate, kindInfo } from '@/lib/quizzes'
 
 const subject = inject('subject')
 const route = useRoute()
 const s = computed(() => subject.value)
 const quiz = computed(() => s.value.quizzes.find((z) => z.id === route.params.quiz))
+const k = computed(() => kindInfo(quiz.value?.kind))
 const typeLabel = { mcq: 'Multiple choice', true_false: 'True or false', identification: 'Identification', enumeration: 'Enumeration' }
 const alts = (x) => (Array.isArray(x) ? x : [x])
 </script>
@@ -15,13 +16,13 @@ const alts = (x) => (Array.isArray(x) ? x : [x])
 <template>
   <div v-if="!quiz" class="text-muted">Quiz not found.</div>
   <div v-else class="mx-auto max-w-3xl">
-    <RouterLink :to="{ name: 'quizzes', params: { subject: s.slug } }" class="font-mono text-xs text-muted hover:text-white">← All quizzes</RouterLink>
+    <RouterLink :to="{ name: k.tab, params: { subject: s.slug } }" class="font-mono text-xs text-muted hover:text-white">← All {{ k.many }}</RouterLink>
     <div class="mb-6 mt-2 flex flex-wrap items-end gap-3">
       <div class="flex-1">
         <p class="font-mono text-xs text-muted">ANSWER KEY<template v-if="quiz.quiz_date"> · {{ fmtDate(quiz.quiz_date) }}</template></p>
         <h2 class="font-display text-2xl font-bold">{{ quiz.title }}</h2>
       </div>
-      <RouterLink :to="{ name: 'quizzes-take', params: { subject: s.slug, quiz: quiz.id } }" class="rounded-lg px-4 py-2 text-sm font-semibold text-ink" :style="{ background: s.color }">Retake</RouterLink>
+      <RouterLink :to="{ name: 'quizzes-take', params: { subject: s.slug, quiz: quiz.id } }" class="rounded-lg px-4 py-2 text-sm font-semibold text-ink" :style="{ background: s.color }">{{ k.start }}</RouterLink>
     </div>
 
     <ol class="space-y-3">

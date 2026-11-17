@@ -64,13 +64,23 @@ const sets = [
 
 const quizzes = [
   {
-    id: 'qz1', subject_id: 's1', term: 'prelim', title: 'Quiz 1: Hashing', quiz_date: '2026-11-14', note: '5 items', time_limit_min: 2,
+    id: 'qz1', subject_id: 's1', kind: 'quiz', term: 'prelim', title: 'Quiz 1: Hashing', quiz_date: '2026-11-14', note: '5 items', time_limit_min: 2,
     module_ids: ['m1'], sort_order: 1, created_at: 'x',
     quiz_questions: [
       { id: 'zq1', type: 'mcq', prompt: 'SHA-256 output size?', choices: ['128 bits', '256 bits'], answer: '256 bits', explanation: null, sort_order: 1 },
       { id: 'zq2', type: 'true_false', prompt: 'Hashes are deterministic.', answer: true, explanation: 'Same input, same output.', sort_order: 2 },
       { id: 'zq3', type: 'identification', prompt: 'Small change → very different hash. Called the ______ effect.', answer: ['avalanche', 'avalanche effect'], explanation: null, sort_order: 3 },
     ],
+  },
+  {
+    id: 'mx1', subject_id: 's1', kind: 'mock_exam', term: 'prelim', title: 'Prelim Mock Exam', quiz_date: null, note: 'Covers hashing', time_limit_min: 5,
+    module_ids: ['m1'], sort_order: 1, created_at: 'x',
+    quiz_questions: [{ id: 'mxq1', type: 'true_false', prompt: 'SHA-256 is a hash function.', answer: true, explanation: null, sort_order: 1 }],
+  },
+  {
+    id: 'mq1', subject_id: 's1', kind: 'mock_quiz', term: 'prelim', title: 'Mock Quiz: Hash basics', quiz_date: null, note: null, time_limit_min: null,
+    module_ids: [], sort_order: 1, created_at: 'x',
+    quiz_questions: [{ id: 'mqq1', type: 'identification', prompt: 'Number used once in mining.', answer: ['nonce'], explanation: null, sort_order: 1 }],
   },
 ]
 

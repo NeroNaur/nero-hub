@@ -1,7 +1,7 @@
 <script setup>
 import { inject, computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { fmtDate, quizScores } from '@/lib/quizzes'
+import { fmtDate, quizScores, kindInfo } from '@/lib/quizzes'
 import QuizRunner from '@/components/QuizRunner.vue'
 
 const subject = inject('subject')
@@ -11,11 +11,12 @@ const quiz = computed(() => s.value.quizzes.find((z) => z.id === route.params.qu
 const running = ref(null)
 const timed = ref(true)
 const start = () => (running.value = { key: Date.now() })
-const back = { name: 'quizzes' }
+const k = computed(() => kindInfo(quiz.value?.kind))
+const back = computed(() => ({ name: k.value.tab, params: { subject: s.value.slug } }))
 </script>
 
 <template>
-  <div v-if="!quiz" class="text-muted">Quiz not found. <RouterLink :to="{ ...back, params: { subject: s.slug } }" class="text-accent">Back</RouterLink></div>
+  <div v-if="!quiz" class="text-muted">Quiz not found. <RouterLink :to="back" class="text-accent">Back</RouterLink></div>
 
   <div v-else-if="running" class="mx-auto max-w-3xl">
     <p class="mb-3 font-display text-xl font-bold">{{ quiz.title }}</p>
@@ -24,7 +25,7 @@ const back = { name: 'quizzes' }
       :subject="s"
       :questions="quiz.questions"
       mode="deferred"
-      kind="class-quiz"
+      :kind="k.runner"
       :quiz-id="quiz.id"
       :term="quiz.term"
       :time-limit="timed && quiz.time_limit_min ? quiz.time_limit_min * 60 : 0"
@@ -34,9 +35,9 @@ const back = { name: 'quizzes' }
   </div>
 
   <div v-else class="mx-auto max-w-xl space-y-5 rounded-2xl border border-line bg-panel p-6 sm:p-8">
-    <RouterLink :to="{ ...back, params: { subject: s.slug } }" class="font-mono text-xs text-muted hover:text-white">← All quizzes</RouterLink>
+    <RouterLink :to="back" class="font-mono text-xs text-muted hover:text-white">← All {{ k.many }}</RouterLink>
     <div>
-      <p class="font-mono text-xs text-muted"><template v-if="quiz.quiz_date">Given {{ fmtDate(quiz.quiz_date) }}</template></p>
+      <p class="font-mono text-xs text-muted">{{ k.One.toUpperCase() }}<template v-if="quiz.quiz_date"> · given {{ fmtDate(quiz.quiz_date) }}</template></p>
       <h2 class="font-display text-2xl font-bold">{{ quiz.title }}</h2>
       <p v-if="quiz.note" class="mt-1 text-sm text-muted">{{ quiz.note }}</p>
     </div>
@@ -50,7 +51,7 @@ const back = { name: 'quizzes' }
     </label>
     <p class="text-sm text-muted">Answer everything, then submit to see your score and which ones you missed.</p>
     <div class="flex flex-wrap gap-2">
-      <button class="flex-1 rounded-lg py-3 font-semibold text-ink disabled:opacity-40" :style="{ background: s.color }" :disabled="!quiz.questions.length" @click="start">Start retake</button>
+      <button class="flex-1 rounded-lg py-3 font-semibold text-ink disabled:opacity-40" :style="{ background: s.color }" :disabled="!quiz.questions.length" @click="start">Start {{ k.start === 'Retake' ? 'retake' : k.one }}</button>
       <RouterLink :to="{ name: 'quizzes-review', params: { subject: s.slug, quiz: quiz.id } }" class="rounded-lg border border-line px-5 py-3 text-sm hover:border-white/40">Review answers</RouterLink>
     </div>
   </div>

@@ -90,11 +90,14 @@ export function parseQuizImport(text, ctx = {}) {
     if (z.date && !/^\d{4}-\d{2}-\d{2}$/.test(z.date)) errors.push(`${where}: "date" must look like 2026-11-14.`)
     if (z.term && !['prelim', 'midterm', 'finals'].includes(z.term)) errors.push(`${where}: "term" must be "prelim", "midterm" or "finals".`)
     if (ctx.term && z.term && z.term !== ctx.term) warnings.push(`${where}: file says "${z.term}", but you're adding it to "${ctx.term}".`)
+    if (z.type && !['quiz', 'mock_quiz', 'mock_exam'].includes(z.type)) errors.push(`${where}: "type" must be "quiz", "mock_quiz" or "mock_exam".`)
+    if (ctx.kind && z.type && z.type !== ctx.kind) warnings.push(`${where}: file says type "${z.type}", but you're adding it as "${ctx.kind}".`)
     if (!(z.questions || []).length) errors.push(`${where}: has no questions.`)
     return {
       title: z.title,
       quiz_date: z.date || null,
       term: ctx.term || z.term || 'prelim',
+      kind: ctx.kind || z.type || 'quiz',
       note: z.note || null,
       time_limit_min: z.time_limit || null,
       lessons: z.lessons || [], // lesson slugs; turned into ids when importing

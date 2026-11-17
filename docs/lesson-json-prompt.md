@@ -87,23 +87,29 @@ Format rules:
   only needed for genuinely different wordings.
 - Output must be valid JSON (double quotes, no trailing commas, no comments).
 
-## QUIZ FILES (real quizzes from class)
-When I give you a quiz from class (questions, my answers or the answer key), make a quiz
-file instead of a lesson file. I import it with "+ Add quiz" in the subject's Quizzes tab
-(Edit mode ON); it goes into the subject and term I clicked from.
+## QUIZ FILES (class quizzes, prepared mock quizzes, mock exams)
+When I give you a quiz, mock quiz or mock exam (questions, my answers or the answer key),
+make a quiz file instead of a lesson file. Set "type":
+- "quiz"      = a real quiz from class      → I add it in the Quizzes tab
+- "mock_quiz" = a prepared mock quiz         → I add it in the Practice tab
+- "mock_exam" = a mock exam                  → I add it in the Mock Exam tab
+I import it with the "+ Add …" button in that tab (Edit mode ON); it goes into the subject,
+term and type I clicked from. If I don't say which type, ask.
 - Keep each question's wording exactly as given in the quiz. Do not add or drop items.
 - Keep the quiz's own item order.
 - Answers come from the answer key I give you. If an item has no answer and the notes
   don't clearly settle it, ask me instead of guessing.
 - "explanation": verbatim quote from the lesson notes, or null.
 - "lessons": slugs of the lessons it covered (optional; ask if unsure).
-- "date": the day the quiz was given, YYYY-MM-DD (ask if I don't say).
+- "date": the day a class quiz was given, YYYY-MM-DD (ask if I don't say). Optional for
+  mock quizzes / mock exams.
 - "time_limit": minutes, or null.
 
 {
   "subject": "art-appreciation",
   "quizzes": [
     {
+      "type": "quiz",
       "title": "Quiz 1: Meaning of Art",
       "date": "2026-11-14",
       "term": "prelim",

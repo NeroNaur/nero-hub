@@ -2,8 +2,10 @@
 import { ref, computed } from 'vue'
 import { importQuiz, saveQuizMeta, clearCache, TERMS } from '@/lib/api'
 import { parseQuizImport } from '@/lib/importFormat'
+import { kindInfo } from '@/lib/quizzes'
 
-const props = defineProps({ subject: Object, term: String })
+const props = defineProps({ subject: Object, term: String, kind: { type: String, default: 'quiz' } })
+const k = computed(() => kindInfo(props.kind))
 const emit = defineEmits(['close', 'done', 'created'])
 
 const tab = ref('file')
@@ -13,7 +15,7 @@ const error = ref('')
 const title = ref('')
 const date = ref(new Date().toISOString().slice(0, 10))
 const termLabel = computed(() => TERMS.find((t) => t.key === props.term)?.label)
-const parsed = computed(() => (text.value.trim() ? parseQuizImport(text.value, { subject: props.subject.slug, term: props.term }) : null))
+const parsed = computed(() => (text.value.trim() ? parseQuizImport(text.value, { subject: props.subject.slug, term: props.term, kind: props.kind }) : null))
 const slugToId = computed(() => Object.fromEntries(props.subject.modules.map((m) => [m.slug, m.id])))
 const unknownLessons = computed(() =>
   (parsed.value?.quizzes || []).flatMap((z) => z.lessons).filter((sl) => !slugToId.value[sl]),
@@ -43,7 +45,7 @@ async function add() {
       clearCache(props.subject.slug)
       emit('done')
     } else {
-      const id = await saveQuizMeta({ subject_id: props.subject.id, term: props.term, title: title.value, quiz_date: date.value })
+      const id = await saveQuizMeta({ subject_id: props.subject.id, term: props.term, kind: props.kind, title: title.value, quiz_date: props.kind === 'quiz' ? date.value : null })
       clearCache(props.subject.slug)
       emit('created', id)
     }
@@ -62,14 +64,14 @@ const canAdd = computed(() => (tab.value === 'file' ? parsed.value && !parsed.va
       <div class="mb-4 flex items-start">
         <div>
           <p class="font-mono text-xs" :style="{ color: subject.color }">{{ subject.name }} · {{ termLabel }}</p>
-          <h3 class="font-display text-2xl font-bold">Add quiz</h3>
+          <h3 class="font-display text-2xl font-bold">Add {{ k.one }}</h3>
         </div>
         <button class="ml-auto grid size-8 place-items-center rounded-full bg-white/10 hover:bg-white/20" @click="emit('close')">✕</button>
       </div>
 
       <div class="mb-4 flex gap-1 border-b border-line">
         <button
-          v-for="t in [{ k: 'file', l: 'Quiz file (JSON)' }, { k: 'hand', l: 'Build by hand' }]"
+          v-for="t in [{ k: 'file', l: `${k.One} file (JSON)` }, { k: 'hand', l: 'Build by hand' }]"
           :key="t.k"
           class="-mb-px border-b-2 px-3 py-2 text-sm"
           :class="tab === t.k ? 'border-accent text-white' : 'border-transparent text-muted hover:text-white'"
@@ -100,8 +102,8 @@ const canAdd = computed(() => (tab.value === 'file' ? parsed.value && !parsed.va
       </section>
 
       <section v-else class="space-y-3">
-        <input v-model="title" placeholder="Quiz title, e.g. Quiz 1: Meaning of Art" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm" />
-        <label class="block text-xs text-muted">Date given
+        <input v-model="title" :placeholder="kind === 'quiz' ? 'Quiz title, e.g. Quiz 1: Meaning of Art' : kind === 'mock_exam' ? 'e.g. Prelim Mock Exam' : 'e.g. Mock Quiz: Functions of Art'" class="w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm" />
+        <label v-if="kind === 'quiz'" class="block text-xs text-muted">Date given
           <input v-model="date" type="date" class="mt-1 w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm" />
         </label>
         <p class="text-xs text-muted">You'll add the questions on the next screen.</p>

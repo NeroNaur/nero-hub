@@ -22,7 +22,7 @@ export async function listSubjects() {
 const MODULE_FIELDS =
   'id, slug, title, summary, term, sort_order, reviews(id, title, content, sort_order), questions(id, type, prompt, choices, answer, explanation, difficulty)'
 const QUIZ_FIELDS =
-  'id, term, title, quiz_date, note, time_limit_min, module_ids, sort_order, created_at, quiz_questions(id, type, prompt, choices, answer, explanation, sort_order, created_at)'
+  'id, kind, term, title, quiz_date, note, time_limit_min, module_ids, sort_order, created_at, quiz_questions(id, type, prompt, choices, answer, explanation, sort_order, created_at)'
 const SET_FIELDS =
   'id, term, module_id, title, description, sort_order, created_at, flashcards(id, front, back, front_image, back_image, sort_order)'
 
@@ -42,9 +42,11 @@ export async function getSubjectFull(slug, { fresh = false } = {}) {
     const head = 'id, slug, code, name, term, color'
     const MAT = ', materials(id, kind, title, url, storage_path, file_name, size_bytes, sort_order, created_at)'
     const QUIZ = `, quizzes(${QUIZ_FIELDS})`
+    const QUIZ_NO_KIND = `, quizzes(${QUIZ_FIELDS.replace(' kind,', '')})`
     // Newest first; each step drops one feature whose SQL file may not have been run yet.
     const variants = [
       { sel: `${head}, modules(${MODULE_FIELDS}${MAT}), flashcard_sets(${SET_FIELDS})${QUIZ}`, flags: {} },
+      { sel: `${head}, modules(${MODULE_FIELDS}${MAT}), flashcard_sets(${SET_FIELDS})${QUIZ_NO_KIND}`, flags: { needsKinds: true } },
       { sel: `${head}, modules(${MODULE_FIELDS}${MAT}), flashcard_sets(${SET_FIELDS})`, flags: { needsQuizzes: true } },
       { sel: `${head}, modules(${MODULE_FIELDS}), flashcard_sets(${SET_FIELDS})`, flags: { needsQuizzes: true, needsMaterials: true } },
       { sel: `${head}, modules(${MODULE_FIELDS.replace(' term,', '')})`, flags: { needsQuizzes: true, needsMaterials: true, needsMigration: true } },
@@ -81,6 +83,7 @@ export async function getSubjectFull(slug, { fresh = false } = {}) {
   subject.quizzes = (subject.quizzes || [])
     .map((qz) => ({
       ...qz,
+      kind: qz.kind || 'quiz',
       module_ids: qz.module_ids || [],
       questions: (qz.quiz_questions || []).sort(bySort).map((q) => ({ ...q, quiz_id: qz.id })),
     }))
@@ -97,7 +100,9 @@ export async function getSubjectFull(slug, { fresh = false } = {}) {
 
 export const modulesInTerm = (subject, term) => subject.modules.filter((m) => m.term === term)
 export const setsInTerm = (subject, term) => subject.sets.filter((s) => s.term === term)
-export const quizzesInTerm = (subject, term) => subject.quizzes.filter((q) => q.term === term)
+// kind: 'quiz' (from class) | 'mock_quiz' (prepared mock quiz) | 'mock_exam'
+export const quizzesInTerm = (subject, term, kind = 'quiz') =>
+  subject.quizzes.filter((q) => q.term === term && q.kind === kind)
 
 export function clearCache(slug) {
   slug ? cache.delete(slug) : cache.clear()
@@ -345,12 +350,15 @@ export async function deleteMaterial(m) {
 // ---------- Class quizzes ----------
 export async function listRecentQuizzes(limit = 6) {
   if (MOCK) return []
-  const res = await supabase
-    .from('quizzes')
-    .select('id, title, quiz_date, term, created_at, subject:subjects(slug, name, code, color), quiz_questions(count)')
-    .order('quiz_date', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false })
-    .limit(limit)
+  const q = () =>
+    supabase
+      .from('quizzes')
+      .select('id, title, quiz_date, term, created_at, subject:subjects(slug, name, code, color), quiz_questions(count)')
+      .order('quiz_date', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
+      .limit(limit)
+  let res = await q().eq('kind', 'quiz') // only real class quizzes
+  if (res.error) res = await q() // 007 not run yet: every row is a class quiz
   return res.error ? [] : res.data // table not created yet → just show nothing
 }
 
@@ -363,13 +371,19 @@ const quizRow = (qz) => ({
   time_limit_min: Number(qz.time_limit_min) || null,
   module_ids: qz.module_ids || [],
   sort_order: qz.sort_order ?? 0,
+  // only send kind for mock quizzes/exams, so class quizzes still work before 007 is run
+  ...(qz.kind && qz.kind !== 'quiz' ? { kind: qz.kind } : {}),
 })
+function kindError(res) {
+  if (res.error && /kind/.test(res.error.message)) throw new Error('Run supabase/007_quiz_kinds.sql first (mock quizzes & exams).')
+  return res
+}
 export async function saveQuizMeta(qz) {
   if (qz.id) {
-    check(await supabase.from('quizzes').update(quizRow(qz)).eq('id', qz.id), 'quiz')
+    check(kindError(await supabase.from('quizzes').update(quizRow(qz)).eq('id', qz.id)), 'quiz')
     return qz.id
   }
-  return check(await supabase.from('quizzes').insert(quizRow(qz)).select('id').single(), 'quiz').id
+  return check(kindError(await supabase.from('quizzes').insert(quizRow(qz)).select('id').single()), 'quiz').id
 }
 export async function importQuiz(qz) {
   const id = await saveQuizMeta(qz)

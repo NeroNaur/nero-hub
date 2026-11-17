@@ -6,6 +6,9 @@ import ModulePicker from '@/components/ModulePicker.vue'
 import QuizRunner from '@/components/QuizRunner.vue'
 import EmptyContent from '@/components/EmptyContent.vue'
 import TermPicker from '@/components/TermPicker.vue'
+import QuizList from '@/components/QuizList.vue'
+import { canEdit } from '@/lib/editMode'
+import { quizzesInTerm } from '@/lib/api'
 import { modulesInTerm } from '@/lib/api'
 import { currentTerm } from '@/lib/term'
 
@@ -13,6 +16,7 @@ const subject = inject('subject')
 const route = useRoute()
 const s = computed(() => subject.value)
 const mods = computed(() => modulesInTerm(s.value, currentTerm(s.value)))
+const prepared = computed(() => quizzesInTerm(s.value, currentTerm(s.value), 'mock_quiz'))
 
 const moduleSlug = ref(route.query.m || '')
 watch(mods, () => { if (!mods.value.some((m) => m.slug === moduleSlug.value)) moduleSlug.value = '' })
@@ -37,6 +41,14 @@ function start() {
 
 <template>
   <TermPicker v-if="!running" :subject="s" />
+
+  <section v-if="!running && (prepared.length || canEdit)" class="mb-10">
+    <h2 class="mb-1 font-display text-xl font-bold">Prepared mock quizzes</h2>
+    <p class="mb-4 text-sm text-muted">Made for this term. Take one, then review the answers.</p>
+    <QuizList kind="mock_quiz" />
+  </section>
+
+  <h2 v-if="!running && (prepared.length || canEdit)" class="mb-4 font-display text-xl font-bold">Practice from lesson questions</h2>
   <EmptyContent v-if="!mods.some((m) => m.questions.length)" what="questions in this term" />
 
   <div v-else-if="running" class="max-w-3xl mx-auto">
@@ -64,7 +76,7 @@ function start() {
         <button
           v-for="opt in [
             { k: 'practice', t: 'Practice', d: 'Untimed · feedback after every question' },
-            { k: 'quiz', t: 'Mock Quiz', d: 'Random set · scored at the end' },
+            { k: 'quiz', t: 'Random mock quiz', d: 'Random set from the lessons · scored at the end' },
           ]"
           :key="opt.k"
           class="rounded-xl border p-4 text-left transition"
