@@ -5,6 +5,7 @@ import { updateMaterial, deleteMaterial, clearCache } from '@/lib/api'
 import { KINDS, kindOf, downloadUrl, fmtSize } from '@/lib/materials'
 import MaterialViewer from './MaterialViewer.vue'
 import AddMaterialModal from './AddMaterialModal.vue'
+import { useDrop } from '@/lib/drop'
 
 const props = defineProps({
   subject: Object,
@@ -15,12 +16,24 @@ const props = defineProps({
 const reloadSubject = inject('reloadSubject')
 const viewing = ref(null)
 const adding = ref(false)
+const droppedFile = ref(null)
+const { over, on: dropOn } = useDrop(
+  (f) => {
+    droppedFile.value = f
+    adding.value = true
+  },
+  { enabled: () => canEdit.value && !adding.value },
+)
 const renaming = ref(null) // { id, title, kind }
 
 const list = () => props.items ?? props.module.materials
 
-async function refresh() {
+function closeAdd() {
   adding.value = false
+  droppedFile.value = null
+}
+async function refresh() {
+  closeAdd()
   renaming.value = null
   clearCache(props.subject.slug)
   await reloadSubject()
@@ -49,7 +62,10 @@ const remove = (m) => confirm(`Delete "${m.title}"?`) && run(() => deleteMateria
 </script>
 
 <template>
-  <div>
+  <div v-on="dropOn" class="relative rounded-xl transition" :class="over && 'ring-2 ring-accent/60'">
+    <div v-if="over" class="pointer-events-none absolute inset-0 z-10 grid place-items-center rounded-xl bg-ink/80 font-semibold text-accent">
+      Drop to add to {{ module.title }}
+    </div>
     <ul class="space-y-2">
       <li
         v-for="m in list()"
@@ -92,9 +108,9 @@ const remove = (m) => confirm(`Delete "${m.title}"?`) && run(() => deleteMateria
       v-if="canEdit"
       class="mt-2 w-full rounded-xl border-2 border-dashed border-accent/50 py-2 text-sm font-semibold text-accent hover:bg-accent/5"
       @click="adding = true"
-    >+ Add material</button>
+    >+ Add material <span class="font-normal opacity-70">(or drop a file here)</span></button>
 
     <MaterialViewer v-if="viewing" :material="viewing" :lesson="module.title" @close="viewing = null" />
-    <AddMaterialModal v-if="adding" :module="module" @close="adding = false" @done="refresh" />
+    <AddMaterialModal v-if="adding" :module="module" :initial-file="droppedFile" @close="closeAdd" @done="refresh" />
   </div>
 </template>

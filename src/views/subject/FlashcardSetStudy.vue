@@ -1,5 +1,5 @@
 <script setup>
-import { inject, computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { inject, computed, ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { progress } from '@/lib/progress'
 import { shuffle as shuffled } from '@/lib/grade'
@@ -11,6 +11,7 @@ const router = useRouter()
 const s = computed(() => subject.value)
 const set = computed(() => s.value.sets.find((x) => x.id === route.params.set))
 const prefs = progress.cardPrefs
+const brokenImg = reactive({}) // image URLs that failed to load
 
 // ---------- deck ----------
 const order = ref([]) // card ids for this round
@@ -239,7 +240,8 @@ onBeforeUnmount(() => {
             title="Star (S)"
             @click.stop="toggleStar"
           >{{ progress.stars[card.id] ? '★' : '☆' }}</span>
-          <img v-if="side.image" :src="side.image" alt="" class="max-h-56 max-w-full rounded-lg object-contain" />
+          <img v-if="side.image && !brokenImg[side.image]" :src="side.image" alt="" class="max-h-56 max-w-full rounded-lg object-contain" @error="brokenImg[side.image] = true" />
+          <span v-else-if="side.image" class="rounded-lg border border-red-400/50 px-3 py-1 text-xs text-red-300">⚠ This card's image didn't load</span>
           <p v-if="side.text" class="leading-snug whitespace-pre-line" :class="[textSize, side.label === 'Term' ? 'font-display font-bold' : '']">{{ side.text }}</p>
           <span class="absolute bottom-3 font-mono text-[11px] text-muted">click or Space to flip</span>
         </button>

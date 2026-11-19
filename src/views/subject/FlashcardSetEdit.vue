@@ -6,6 +6,7 @@ import { canEdit, editMode } from '@/lib/editMode'
 import { TERMS, modulesInTerm, saveFlashcardSet, deleteFlashcardSet, uploadCardImage, clearCache } from '@/lib/api'
 import { currentTerm, setTerm } from '@/lib/term'
 import ImportCardsModal from '@/components/ImportCardsModal.vue'
+import ImageSlot from '@/components/ImageSlot.vue'
 
 const subject = inject('subject')
 const reloadSubject = inject('reloadSubject')
@@ -78,11 +79,11 @@ function move(k, d) {
 
 // ---- images ----
 const uploading = reactive({}) // `${k}-${side}` -> true
-async function pickImage(card, side, e) {
-  const file = e.target.files?.[0]
-  e.target.value = ''
+async function pickImage(card, side, file) {
   if (!file) return
-  if (!file.type.startsWith('image/')) return (error.value = 'That file is not an image.')
+  if (!file.type.startsWith('image/')) return (error.value = `"${file.name}" is not an image.`)
+  if (/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name))
+    return (error.value = 'iPhone HEIC photos can\'t be read by most browsers. Use JPG/PNG (or screenshot it).')
   const key = `${card._k}-${side}`
   uploading[key] = true
   error.value = ''
@@ -94,6 +95,13 @@ async function pickImage(card, side, e) {
   } finally {
     delete uploading[key]
   }
+}
+// Paste an image (Ctrl+V) while typing in a term/definition box → it goes into that side's image slot.
+function onPaste(card, side, e) {
+  const file = [...(e.clipboardData?.files || [])].find((f) => f.type.startsWith('image/'))
+  if (!file) return
+  e.preventDefault()
+  pickImage(card, side, file)
 }
 function clearImage(card, side) {
   card[`${side}_image`] = null
@@ -206,7 +214,7 @@ onBeforeRouteLeave(() => !dirty.value || confirm('You have unsaved changes. Leav
         :data-card="k"
         class="rounded-xl border bg-panel p-4 transition"
         :class="dragOver === k ? 'border-accent' : 'border-line'"
-        @dragover.prevent="dragOver = k"
+        @dragover.prevent="dragFrom !== null && (dragOver = k)"
         @dragleave="dragOver = null"
         @drop.prevent="onDrop(k)"
       >
@@ -229,16 +237,13 @@ onBeforeRouteLeave(() => !dirty.value || confirm('You have unsaved changes. Leav
         <div class="grid grid-cols-1 sm:grid-cols-[auto_1fr_1fr_auto] gap-3 items-start">
           <template v-for="side in ['front', 'back']" :key="side">
             <!-- term image goes left of the term; definition image goes right of the definition -->
-            <label
+            <ImageSlot
               v-if="side === 'front'"
-              class="relative grid place-items-center size-16 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-dashed border-white/30 text-[10px] text-muted hover:border-white/60"
-              :title="c.front_image ? 'Change image' : 'Add image to term'"
-            >
-              <img v-if="c.front_image" :src="c.front_image" alt="" class="absolute inset-0 size-full object-cover" />
-              <span v-else-if="uploading[`${c._k}-front`]">…</span>
-              <span v-else class="text-center leading-tight">🖼<br />Image</span>
-              <input type="file" accept="image/*" class="hidden" @change="pickImage(c, 'front', $event)" />
-            </label>
+              :url="c.front_image"
+              :uploading="!!uploading[`${c._k}-front`]"
+              label="term"
+              @pick="(f) => pickImage(c, 'front', f)"
+            />
 
             <div>
               <textarea
@@ -247,6 +252,7 @@ onBeforeRouteLeave(() => !dirty.value || confirm('You have unsaved changes. Leav
                 :placeholder="side === 'front' ? 'Enter term' : 'Enter definition'"
                 class="w-full resize-y rounded-lg border border-line bg-ink px-3 py-2 text-sm focus:border-white/40 focus:outline-none"
                 @keydown.tab.exact="side === 'back' && k === cards.length - 1 && ($event.preventDefault(), addCard())"
+                @paste="onPaste(c, side, $event)"
               />
               <div class="mt-1 flex items-center justify-between font-mono text-[10px] uppercase text-muted">
                 <span>{{ side === 'front' ? 'Term' : 'Definition' }}</span>
@@ -254,16 +260,13 @@ onBeforeRouteLeave(() => !dirty.value || confirm('You have unsaved changes. Leav
               </div>
             </div>
 
-            <label
+            <ImageSlot
               v-if="side === 'back'"
-              class="relative grid place-items-center size-16 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-dashed border-white/30 text-[10px] text-muted hover:border-white/60"
-              :title="c.back_image ? 'Change image' : 'Add image to definition'"
-            >
-              <img v-if="c.back_image" :src="c.back_image" alt="" class="absolute inset-0 size-full object-cover" />
-              <span v-else-if="uploading[`${c._k}-back`]">…</span>
-              <span v-else class="text-center leading-tight">🖼<br />Image</span>
-              <input type="file" accept="image/*" class="hidden" @change="pickImage(c, 'back', $event)" />
-            </label>
+              :url="c.back_image"
+              :uploading="!!uploading[`${c._k}-back`]"
+              label="definition"
+              @pick="(f) => pickImage(c, 'back', f)"
+            />
           </template>
         </div>
       </div>

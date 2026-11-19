@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useDrop, readText } from '@/lib/drop'
 import { importModule, clearCache, TERMS } from '@/lib/api'
 import { parseImport, slugify } from '@/lib/importFormat'
 
@@ -19,11 +20,16 @@ const existingSlugs = computed(() => new Set(props.subject.modules.map((m) => m.
 function onFile(e) {
   const f = e.target.files?.[0]
   e.target.value = ''
-  if (!f) return
-  const r = new FileReader()
-  r.onload = () => (text.value = String(r.result))
-  r.readAsText(f)
+  if (f) takeJson(f)
 }
+async function takeJson(f) {
+  error.value = ''
+  if (!/\.(json|txt)$/i.test(f.name) && f.type !== 'application/json')
+    return (error.value = `"${f.name}" isn't a .json file.`)
+  tab.value = 'file'
+  text.value = await readText(f)
+}
+const { over, on: dropOn } = useDrop(takeJson, { enabled: () => !busy.value })
 
 // ---- notes only ----
 const nTitle = ref('')
@@ -67,7 +73,7 @@ const canAdd = computed(() =>
 
 <template>
   <div class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" @click.self="emit('close')">
-    <div class="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-2xl border border-line bg-panel p-6">
+    <div class="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-2xl border bg-panel p-6 transition" :class="over ? 'border-accent ring-2 ring-accent/40' : 'border-line'" v-on="dropOn">
       <div class="flex items-start mb-4">
         <div>
           <p class="font-mono text-xs" :style="{ color: subject.color }">{{ subject.name }} · {{ termLabel }}</p>
@@ -91,7 +97,7 @@ const canAdd = computed(() =>
           Choose .json file…
           <input type="file" accept=".json,application/json" class="hidden" @change="onFile" />
         </label>
-        <textarea v-model="text" rows="9" spellcheck="false" placeholder="…or paste the JSON here" class="w-full rounded-xl border border-line bg-ink p-3 font-mono text-xs" />
+        <textarea v-model="text" rows="9" spellcheck="false" :placeholder="over ? 'Drop the .json file here' : '…or drop the .json file here, or paste the JSON'" class="w-full rounded-xl border border-line bg-ink p-3 font-mono text-xs" />
         <div v-if="parsed" class="rounded-xl border border-line bg-ink p-3 text-sm space-y-1">
           <template v-if="parsed.errors.length">
             <p class="font-semibold text-red-300">Fix these first:</p>

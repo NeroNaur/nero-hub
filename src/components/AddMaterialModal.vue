@@ -1,9 +1,10 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useDrop } from '@/lib/drop'
 import { addMaterial, MAX_FILE_MB } from '@/lib/api'
 import { KINDS, kindFromFile, kindFromUrl, fmtSize } from '@/lib/materials'
 
-const props = defineProps({ module: Object })
+const props = defineProps({ module: Object, initialFile: { type: Object, default: null } })
 const emit = defineEmits(['close', 'done'])
 
 const tab = ref('file')
@@ -17,7 +18,10 @@ const error = ref('')
 function onFile(e) {
   const f = e.target.files?.[0]
   e.target.value = ''
-  if (!f) return
+  if (f) takeFile(f)
+}
+function takeFile(f) {
+  tab.value = 'file'
   const k = kindFromFile(f)
   if (!k) return (error.value = 'Only PDF, Word and PowerPoint files can be uploaded. For anything else, use a link.')
   error.value = ''
@@ -25,6 +29,9 @@ function onFile(e) {
   kind.value = k
   if (!title.value) title.value = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ')
 }
+const { over, on: dropOn } = useDrop(takeFile, { enabled: () => !busy.value })
+onMounted(() => props.initialFile && takeFile(props.initialFile))
+
 watch(url, (u) => {
   if (tab.value === 'link' && u.trim()) kind.value = kindFromUrl(u.trim())
 })
@@ -58,7 +65,7 @@ async function save() {
 
 <template>
   <div class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" @click.self="!busy && emit('close')">
-    <div class="w-full max-w-lg rounded-2xl border border-line bg-panel p-6">
+    <div class="w-full max-w-lg rounded-2xl border bg-panel p-6 transition" :class="over ? 'border-accent ring-2 ring-accent/40' : 'border-line'" v-on="dropOn">
       <div class="mb-4 flex items-start">
         <div>
           <p class="font-mono text-xs text-muted">{{ module.title }}</p>
@@ -79,14 +86,21 @@ async function save() {
 
       <div class="space-y-3">
         <template v-if="tab === 'file'">
-          <label class="block cursor-pointer rounded-xl border-2 border-dashed border-line p-5 text-center hover:border-white/40">
-            <template v-if="file">
+          <label
+            class="block cursor-pointer rounded-xl border-2 border-dashed p-5 text-center transition"
+            :class="over ? 'border-accent bg-accent/10' : 'border-line hover:border-white/40'"
+          >
+            <template v-if="over">
+              <p class="font-semibold text-accent">Drop it here</p>
+              <p class="text-xs text-muted">PDF, Word or PowerPoint</p>
+            </template>
+            <template v-else-if="file">
               <p class="font-semibold">{{ file.name }}</p>
               <p class="font-mono text-xs" :class="tooBig ? 'text-red-300' : 'text-muted'">{{ fmtSize(file.size) }}<template v-if="tooBig"> · over the {{ MAX_FILE_MB }} MB limit</template></p>
               <p class="mt-1 text-xs text-muted">Click to choose a different file</p>
             </template>
             <template v-else>
-              <p class="font-semibold">Choose a file</p>
+              <p class="font-semibold">Drop a file here, or click to choose</p>
               <p class="text-xs text-muted">PDF, Word or PowerPoint · up to {{ MAX_FILE_MB }} MB</p>
             </template>
             <input type="file" accept=".pdf,.doc,.docx,.ppt,.pptx" class="hidden" @change="onFile" />
