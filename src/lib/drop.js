@@ -1,4 +1,4 @@
-// Drag-and-drop helper: const { over, on } = useDrop((file) => ...)
+// Drag-and-drop helper: const { over, on } = useDrop((file, allFiles) => ...)
 // Template: <div v-on="on" :class="over && 'ring'">
 import { ref } from 'vue'
 
@@ -29,8 +29,8 @@ export function useDrop(onFile, { enabled = () => true } = {}) {
       e.stopPropagation()
       depth = 0
       over.value = false
-      const file = e.dataTransfer.files?.[0]
-      if (file) onFile(file)
+      const files = [...(e.dataTransfer.files || [])]
+      if (files.length) onFile(files[0], files)
     },
   }
   return { over, on }

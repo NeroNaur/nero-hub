@@ -32,7 +32,7 @@ function onChange(e) {
     @drop.prevent.stop="onDrop"
   >
     <img v-if="url && !broken" :src="url" alt="" class="absolute inset-0 size-full object-cover" @error="broken = true" />
-    <span v-if="uploading" class="relative rounded bg-ink/80 px-1">Uploading…</span>
+    <span v-if="uploading" class="absolute inset-x-0 bottom-0 bg-ink/80 py-0.5 text-center">Uploading…</span>
     <span v-else-if="over" class="relative font-semibold text-accent">Drop</span>
     <span v-else-if="broken" class="relative px-1 text-center leading-tight text-red-300">⚠ didn't<br />load</span>
     <span v-else-if="!url" class="text-center leading-tight">🖼<br />Image</span>

@@ -31,3 +31,12 @@ Progress, scores and the mistake bank are stored in each visitor's browser (loca
 ```
 VITE_MOCK=1 npm run dev
 ```
+
+## Keep-alive
+`api/keepalive.js` runs every 2 days (Vercel cron in `vercel.json`) and makes one tiny read
+from Supabase, so the free project doesn't pause from inactivity. It uses the same
+`VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` environment variables.
+
+## Backups
+Admin → "⬇ Backup" per subject (or "Back up all subjects"); Hallway (Edit mode) → ⬇ per lesson.
+Backups use the import format, so lessons/quizzes can be re-imported with the "+ Add" boxes.

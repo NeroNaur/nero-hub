@@ -1,8 +1,8 @@
 <script setup>
 import { ref, inject } from 'vue'
 import { canEdit } from '@/lib/editMode'
-import { updateMaterial, deleteMaterial, clearCache } from '@/lib/api'
-import { KINDS, kindOf, downloadUrl, fmtSize } from '@/lib/materials'
+import { updateMaterial, deleteMaterial, addMaterial, clearCache, MAX_FILE_MB } from '@/lib/api'
+import { KINDS, kindOf, downloadUrl, fmtSize, kindFromFile } from '@/lib/materials'
 import MaterialViewer from './MaterialViewer.vue'
 import AddMaterialModal from './AddMaterialModal.vue'
 import { useDrop } from '@/lib/drop'
@@ -18,12 +18,46 @@ const viewing = ref(null)
 const adding = ref(false)
 const droppedFile = ref(null)
 const { over, on: dropOn } = useDrop(
-  (f) => {
+  (f, all) => {
+    if (all.length > 1) return uploadMany(all)
     droppedFile.value = f
     adding.value = true
   },
-  { enabled: () => canEdit.value && !adding.value },
+  { enabled: () => canEdit.value && !adding.value && !batchBusy.value },
 )
+
+// ---- several files dropped at once: upload them one after another ----
+const batch = ref([]) // { name, state: 'waiting' | 'uploading' | 'done' | 'error', msg }
+const batchBusy = ref(false)
+async function uploadMany(files) {
+  batchBusy.value = true
+  batch.value = files.map((f) => ({ name: f.name, state: 'waiting', msg: '' }))
+  let order = props.module.materials.length
+  for (const [i, f] of files.entries()) {
+    const row = batch.value[i]
+    const kind = kindFromFile(f)
+    if (!kind) Object.assign(row, { state: 'error', msg: 'not a PDF, Word or PowerPoint file' })
+    else if (f.size > MAX_FILE_MB * 1048576) Object.assign(row, { state: 'error', msg: `over ${MAX_FILE_MB} MB` })
+    else {
+      row.state = 'uploading'
+      try {
+        await addMaterial({
+          module_id: props.module.id,
+          kind,
+          title: f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' '),
+          file: f,
+          sort_order: ++order,
+        })
+        row.state = 'done'
+      } catch (e) {
+        Object.assign(row, { state: 'error', msg: e.message })
+      }
+    }
+  }
+  batchBusy.value = false
+  await refresh()
+  if (batch.value.every((r) => r.state === 'done')) setTimeout(() => (batch.value = []), 3000)
+}
 const renaming = ref(null) // { id, title, kind }
 
 const list = () => props.items ?? props.module.materials
@@ -104,11 +138,19 @@ const remove = (m) => confirm(`Delete "${m.title}"?`) && run(() => deleteMateria
       </li>
     </ul>
 
+    <div v-if="batch.length" class="mt-2 space-y-1 rounded-xl border border-line bg-ink p-3 font-mono text-xs">
+      <p class="mb-1 text-muted">Uploading {{ batch.length }} files to {{ module.title }}</p>
+      <p v-for="b in batch" :key="b.name" :class="{ 'text-green-300': b.state === 'done', 'text-red-300': b.state === 'error', 'text-accent': b.state === 'uploading', 'text-muted': b.state === 'waiting' }">
+        {{ b.state === 'done' ? '✓' : b.state === 'error' ? '✗' : b.state === 'uploading' ? '…' : '·' }} {{ b.name }}<template v-if="b.msg"> ({{ b.msg }})</template>
+      </p>
+      <button v-if="!batchBusy" class="mt-1 text-muted underline hover:text-white" @click="batch = []">Close</button>
+    </div>
+
     <button
       v-if="canEdit"
       class="mt-2 w-full rounded-xl border-2 border-dashed border-accent/50 py-2 text-sm font-semibold text-accent hover:bg-accent/5"
       @click="adding = true"
-    >+ Add material <span class="font-normal opacity-70">(or drop a file here)</span></button>
+    >+ Add material <span class="font-normal opacity-70">(or drop files here)</span></button>
 
     <MaterialViewer v-if="viewing" :material="viewing" :lesson="module.title" @close="viewing = null" />
     <AddMaterialModal v-if="adding" :module="module" :initial-file="droppedFile" @close="closeAdd" @done="refresh" />

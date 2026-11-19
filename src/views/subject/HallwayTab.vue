@@ -9,6 +9,8 @@ import EmptyContent from '@/components/EmptyContent.vue'
 import TermPicker from '@/components/TermPicker.vue'
 import AddLessonModal from '@/components/AddLessonModal.vue'
 import HideableSection from '@/components/HideableSection.vue'
+import SubjectSearch from '@/components/SubjectSearch.vue'
+import { lessonFile, download } from '@/lib/backup'
 
 const subject = inject('subject')
 const reloadSubject = inject('reloadSubject')
@@ -80,6 +82,11 @@ const field = 'w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm foc
   <p v-if="s.needsSettings && canEdit" class="mb-6 rounded-lg border border-amber-400/40 bg-amber-400/10 p-3 text-sm text-amber-200">
     Show/Hide needs <code>supabase/006_subject_settings.sql</code> to be run in Supabase.
   </p>
+  <!-- Search (all terms) -->
+  <HideableSection :subject="s" id="search" label="Search">
+    <SubjectSearch :subject="s" />
+  </HideableSection>
+
   <TermPicker :subject="s" />
 
   <!-- Stats -->
@@ -183,6 +190,7 @@ const field = 'w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm foc
             >Practice</RouterLink>
             <template v-if="canEdit">
               <button class="rounded-lg border border-dashed border-accent/60 px-3 py-1.5 text-sm text-accent hover:bg-accent/10" title="Edit title, description, term" @click="startEdit(m)">✏️</button>
+              <button class="rounded-lg border border-dashed border-line px-3 py-1.5 text-sm text-muted hover:text-white" title="Download a backup of this lesson (.json, re-importable)" @click="download(lessonFile(s, m), `${s.slug}-${m.slug}.json`)">⬇</button>
               <button class="rounded-lg border border-dashed border-red-400/50 px-3 py-1.5 text-sm text-red-300 hover:bg-red-500/10" title="Delete lesson" @click="remove(m)">🗑</button>
             </template>
           </div>

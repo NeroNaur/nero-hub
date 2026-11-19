@@ -79,12 +79,15 @@ function move(k, d) {
 
 // ---- images ----
 const uploading = reactive({}) // `${k}-${side}` -> true
+const previews = reactive({}) // `${k}-${side}` -> local preview URL while uploading
 async function pickImage(card, side, file) {
   if (!file) return
   if (!file.type.startsWith('image/')) return (error.value = `"${file.name}" is not an image.`)
   if (/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name))
     return (error.value = 'iPhone HEIC photos can\'t be read by most browsers. Use JPG/PNG (or screenshot it).')
   const key = `${card._k}-${side}`
+  const preview = URL.createObjectURL(file) // show it instantly while it uploads
+  previews[key] = preview
   uploading[key] = true
   error.value = ''
   try {
@@ -94,6 +97,8 @@ async function pickImage(card, side, file) {
     error.value = err.message
   } finally {
     delete uploading[key]
+    delete previews[key]
+    URL.revokeObjectURL(preview)
   }
 }
 // Paste an image (Ctrl+V) while typing in a term/definition box → it goes into that side's image slot.
@@ -239,7 +244,7 @@ onBeforeRouteLeave(() => !dirty.value || confirm('You have unsaved changes. Leav
             <!-- term image goes left of the term; definition image goes right of the definition -->
             <ImageSlot
               v-if="side === 'front'"
-              :url="c.front_image"
+              :url="previews[`${c._k}-front`] || c.front_image"
               :uploading="!!uploading[`${c._k}-front`]"
               label="term"
               @pick="(f) => pickImage(c, 'front', f)"
@@ -262,7 +267,7 @@ onBeforeRouteLeave(() => !dirty.value || confirm('You have unsaved changes. Leav
 
             <ImageSlot
               v-if="side === 'back'"
-              :url="c.back_image"
+              :url="previews[`${c._k}-back`] || c.back_image"
               :uploading="!!uploading[`${c._k}-back`]"
               label="definition"
               @pick="(f) => pickImage(c, 'back', f)"

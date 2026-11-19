@@ -2,7 +2,8 @@
 import { ref, watch } from 'vue'
 import { user, signIn, signOut } from '@/lib/auth'
 import { editMode } from '@/lib/editMode'
-import { listSubjectsAdmin, saveSubject, deleteSubject, subjectFileStats, clearCache } from '@/lib/api'
+import { listSubjectsAdmin, saveSubject, deleteSubject, subjectFileStats, clearCache, getSubjectFull } from '@/lib/api'
+import { subjectFile, download, stamp } from '@/lib/backup'
 import { slugify } from '@/lib/importFormat'
 
 const mock = import.meta.env.VITE_MOCK === '1'
@@ -88,6 +89,18 @@ async function remove(s, i) {
   }
 }
 
+async function backup(s) {
+  try {
+    const full = await getSubjectFull(s.slug, { fresh: true })
+    download(subjectFile(full), `nero-hub-${s.slug}-backup-${stamp()}.json`)
+  } catch (e) {
+    error.value = e.message
+  }
+}
+async function backupAll() {
+  for (const s of subjects.value.filter((x) => x.id)) await backup(s)
+}
+
 const input = 'w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm focus:border-white/40 focus:outline-none'
 </script>
 
@@ -145,6 +158,7 @@ const input = 'w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm foc
           <div class="mt-4 flex items-center gap-3 text-sm">
             <span class="font-mono text-xs text-muted">{{ s.id ? `/${s.slug} · ${s.modules?.[0]?.count || 0} lessons` : 'new subject' }}</span>
             <RouterLink v-if="s.id" :to="{ name: 'hallway', params: { subject: s.slug } }" class="text-muted underline hover:text-white">Open</RouterLink>
+            <button v-if="s.id" class="text-muted underline hover:text-white" title="Download everything in this subject as a .json backup" @click="backup(s)">⬇ Backup</button>
             <button class="ml-auto text-red-300 hover:underline" @click="remove(s, i)">Delete</button>
             <button class="rounded-lg bg-accent px-4 py-1.5 font-semibold text-ink disabled:opacity-40" :disabled="!s._dirty" @click="save(s)">
               {{ s.id ? 'Save' : 'Create subject' }}
@@ -157,7 +171,11 @@ const input = 'w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm foc
         + Add subject
       </button>
 
-      <button class="mt-10 text-sm text-muted underline hover:text-white" @click="signOut">Log out</button>
+      <div class="mt-10 flex flex-wrap items-center gap-4 text-sm">
+        <button class="rounded-lg border border-line px-4 py-2 hover:border-white/40" @click="backupAll">⬇ Back up all subjects</button>
+        <span class="text-xs text-muted">One .json file per subject. Keep them somewhere safe (e.g. Google Drive).</span>
+        <button class="ml-auto text-muted underline hover:text-white" @click="signOut">Log out</button>
+      </div>
 
       <div class="fixed bottom-5 right-5 space-y-2 text-sm">
         <p v-if="flash" class="rounded-lg border border-green-500/40 bg-green-500/20 px-4 py-2 text-green-200">{{ flash }}</p>
